@@ -1,0 +1,71 @@
+venv/
+.idea/
+
+#
+# Patkit generated files
+#
+*.meta
+*.npz
+
+####
+# Groups of files 
+####
+# pyinstaller results
+build/
+*.spec
+
+# vs code line counter's files
+.VSCodeCounter/
+
+# pyreverse byproducts
+*.dot
+*.vcg
+
+# Emacs autosaves
+*~
+
+# Python bytecode
+*.pyc
+
+# Log files 
+*.log
+
+# Pickled output files 
+*.pickle
+
+# Apple Desktop Services Store file
+.DS_store
+
+####
+# Specific files 
+####
+# Result of test run
+spaghetti_plot.pdf
+
+# Template for licenseheaders.py to include gpl in headers of python files.
+gpl-v3.tmpl
+
+####
+# Directories
+####
+
+# VSCode settings
+.vscode/
+
+# Results of an optic flow run.
+of_results/
+
+# Publication and conference datasets 
+local_data/
+local/
+# in case it's a symlink
+local_data
+local
+cree-asr
+
+# Figure output files
+figures/
+
+# Distribution and build files
+dist/
+*.egg-info
