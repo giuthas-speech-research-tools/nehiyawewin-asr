@@ -14,7 +14,7 @@ from datasets import load_dataset, Audio, DatasetDict
 from transformers import pipeline
 
 # Import our custom configuration to maintain synchronization
-import config
+from config import config
 
 
 def main() -> None:
@@ -23,31 +23,26 @@ def main() -> None:
 
     Loads the identical test set split, infers text via the pipeline,
     computes evaluation metrics, and saves raw transcripts to a TSV.
-
-    Examples
-    --------
-    >>> if __name__ == "__main__":
-    ...     main()
     """
     print("Loading Fine-Tuned Cree Whisper Model for Evaluation...")
 
     # Load dataset utilizing kwarg convention
     dataset_full = load_dataset(
         path="csv",
-        data_files=config.METADATA_CSV,
+        data_files=config.metadata_csv,
         split="train"
     )
 
     dataset_full = dataset_full.cast_column(
         column="audio",
-        feature=Audio(sampling_rate=config.SAMPLING_RATE)
+        feature=Audio(sampling_rate=config.sampling_rate)
     )
 
     # CRITICAL: Preserve random seed and test size exact configuration
     # so we test against the identical files withheld during training.
     dataset: DatasetDict = dataset_full.train_test_split(
-        test_size=config.TEST_SIZE,
-        seed=config.RANDOM_SEED
+        test_size=config.test_size,
+        seed=config.random_seed
     )
     test_dataset = dataset["test"]
 
@@ -56,14 +51,14 @@ def main() -> None:
     # Define strict pipeline loading
     transcriber = pipeline(
         task="automatic-speech-recognition",
-        model=config.FINAL_MODEL_DIR,
-        tokenizer=config.FINAL_MODEL_DIR,
-        feature_extractor=config.FINAL_MODEL_DIR,
+        model=config.final_model_dir,
+        tokenizer=config.final_model_dir,
+        feature_extractor=config.final_model_dir,
         device=device
     )
 
-    wer_metric = evaluate.load(path="wer")
-    cer_metric = evaluate.load(path="cer")
+    wer_metric = evaluate.load(path=config.wer_metric_path)
+    cer_metric = evaluate.load(path=config.cer_metric_path)
 
     references: list[str] = []
     predictions: list[str] = []
@@ -88,9 +83,9 @@ def main() -> None:
         # Store layout mapping for file serialization
         results_data.append([audio_path, ground_truth, prediction])
 
-    print(f"Writing detailed predictions to {config.TEST_RESULTS_TSV}...")
+    print(f"Writing detailed predictions to {config.test_results_tsv}...")
     with open(
-        file=config.TEST_RESULTS_TSV,
+        file=config.test_results_tsv,
         mode="w",
         encoding="utf-8",
         newline=""
@@ -110,7 +105,7 @@ def main() -> None:
 
     # Emit human-readable performance characteristics
     print("\n" + "="*50)
-    print("FINAL EVALUATION METRICS")
+    print("Final evaluation metrics")
     print("="*50)
     print(f"Word Error Rate (WER):      {wer * 100:.2f}%")
     print(f"Character Error Rate (CER): {cer * 100:.2f}%")

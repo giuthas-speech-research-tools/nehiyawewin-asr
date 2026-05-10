@@ -180,11 +180,11 @@ def main() -> None:
     dataset = dataset.map(
         function=prepare_dataset,
         remove_columns=dataset.column_names["train"],
-        num_processors=config.num_processors
+        num_proc=config.num_processors
     )
 
     data_collator = DataCollatorSpeechSeq2SeqWithPadding(processor=processor)
-    wer_metric = evaluate.load(path="wer")
+    wer_metric = evaluate.load(path=config.wer_metric_path)
 
     def compute_metrics(prediction: EvalPrediction) -> dict[str, float]:
         """
@@ -264,8 +264,8 @@ def main() -> None:
     trainer.train()
 
     print("Training Completed. Saving Model Weights and Configs...")
-    trainer.save_model(output_dir=config.output_dir)
-    processor.save_pretrained(save_directory=config.output_dir)
+    trainer.save_model(output_dir=config.final_model_dir)
+    processor.save_pretrained(save_directory=config.final_model_dir)
 
 
 if __name__ == "__main__":

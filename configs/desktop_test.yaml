@@ -6,7 +6,7 @@ test_size: 0.1
 sampling_rate: 16000
 
 # Paths
-base_model_id: "openai/whisper-tiny"
+base_model_id: "./local-whisper-tiny"
 wer_metric_path: "wer"
 cer_metric_path: "cer"
 metadata_csv: "metadata.csv"
