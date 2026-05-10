@@ -12,9 +12,12 @@ standard `venv` or a faster manager like `uv`.
 
 ```bash
 # Clone the repository
-git clone [https://github.com/giuthas-speech-researchtools/whisper-test.git](https://github.com/giuthas-speech-researchtools/whisper-test.git)
+git clone https://github.com/giuthas-speech-researchtools/whisper-test
 cd whisper-test
+```
 
+### Using pip:
+```bash
 # Create and activate a virtual environment
 python -m venv .venv
 source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
@@ -23,6 +26,10 @@ source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
 pip install torch transformers datasets evaluate pandas pyyaml
 
 ```
+
+### Using uv:
+No need to do anything here. Just replace all `python` calls with `uv python` in the next steps.
+
 
 ## 2. Prepare Data and Offline Assets
 
