@@ -16,7 +16,11 @@ for wav_filename in os.listdir(wav_dir):
         if os.path.exists(sro_path):
             with open(sro_path, 'r', encoding='utf-8') as f:
                 transcript = f.read().strip()
-            dataset_records.append({"audio": wav_path, "sentence": transcript})
+
+            dataset_records.append({
+                "audio": wav_path,
+                "sentence": transcript
+            })
 
 df = pd.DataFrame(dataset_records)
 df.to_csv(output_csv, index=False)
