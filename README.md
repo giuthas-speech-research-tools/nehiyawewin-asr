@@ -1,10 +1,14 @@
 # Whisper ASR Fine-Tuning Setup
 
-This repository contains scripts for fine-tuning Hugging Face's Whisper models on local speech data (e.g., Cree). The pipeline is configured via YAML profiles to seamlessly transition between local desktop testing (CPU) and high-performance computing (HPC) environments like Digital Alliance's Narval (A100 GPUs).
+This repository contains scripts for fine-tuning Hugging Face's Whisper models
+on local speech data (e.g., Cree). The pipeline is configured via YAML profiles
+to transition between local desktop testing (CPU) and high-performance
+computing (HPC) environments like Digital Alliance's Narval (A100 GPUs).
 
 ## 1. Getting Started: Clone and Setup Environment
 
-First, clone the repository and set up your Python environment. You can use standard `venv` or a faster manager like `uv`.
+First, clone the repository and set up your Python environment. You can use
+standard `venv` or a faster manager like `uv`.
 
 ```bash
 # Clone the repository
