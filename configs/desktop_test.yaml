@@ -1,0 +1,23 @@
+# Hardware & Data
+num_processors: 24
+use_cpu: true
+random_seed: 42
+test_size: 0.1
+sampling_rate: 16000
+
+# Paths
+base_model_id: "openai/whisper-tiny"
+wer_metric_path: "wer"
+cer_metric_path: "cer"
+metadata_csv: "metadata.csv"
+output_dir: "./whisper-tiny-cree-finetuned-test"
+
+# Training Hyperparameters (Tiny values for a quick run)
+train_batch_size: 4
+grad_accum_steps: 4
+learning_rate: 1.0e-5
+warmup_steps: 2
+max_steps: 10
+save_steps: 5
+eval_steps: 5
+logging_steps: 2
