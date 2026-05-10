@@ -12,7 +12,7 @@ standard `venv` or a faster manager like `uv`.
 
 ```bash
 # Clone the repository
-git clone https://github.com/giuthas-speech-researchtools/whisper-test
+git clone https://github.com/giuthas-speech-research-tools/whisper-test
 cd whisper-test
 ```
 
