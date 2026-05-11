@@ -192,6 +192,7 @@ def main() -> None:
 
     data_collator = DataCollatorSpeechSeq2SeqWithPadding(processor=processor)
     wer_metric = evaluate.load(path=config.wer_metric_path)
+    cer_metric = evaluate.load(path=config.cer_metric_path)
 
     def compute_metrics(prediction: EvalPrediction) -> dict[str, float]:
         """
@@ -226,7 +227,12 @@ def main() -> None:
             predictions=prediction_str,
             references=label_str
         )
-        return {"wer": wer_score}
+        cer_score: float = 100 * cer_metric.compute(
+            predictions=prediction_str,
+            references=label_str
+        )
+
+        return {"wer": wer_score, "cer": cer_score}
 
     print("Loading Model Weights...")
     model = WhisperForConditionalGeneration.from_pretrained(
