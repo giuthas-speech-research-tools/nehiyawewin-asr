@@ -32,6 +32,7 @@ from transformers import (
     WhisperForConditionalGeneration,
     Seq2SeqTrainingArguments,
     Seq2SeqTrainer,
+    EarlyStoppingCallback,
 )
 from transformers.trainer_utils import EvalPrediction
 
@@ -270,6 +271,10 @@ def main() -> None:
         bf16=config.bf16,
         gradient_checkpointing=config.gradient_checkpointing,
         dataloader_num_workers=config.dataloader_num_workers,
+        load_best_model_at_end=True,
+        metric_for_best_model="loss",
+        greater_is_better=False,
+        save_total_limit=5,
     )
 
     trainer = Seq2SeqTrainer(
@@ -280,6 +285,7 @@ def main() -> None:
         data_collator=data_collator,
         compute_metrics=compute_metrics,
         processing_class=processor.feature_extractor,
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=3)],
     )
 
     print("Commencing CPU-based Seq2Seq Training...")
