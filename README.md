@@ -28,7 +28,7 @@ pip install torch transformers datasets evaluate pandas pyyaml
 ```
 
 ### Using uv:
-No need to do anything here. Just replace all `python` calls with `uv python` in the next steps.
+No need to do anything here. Just replace all `python` calls with `uv run python` in the next steps.
 
 
 ## 2. Prepare Data and Offline Assets
@@ -46,16 +46,35 @@ python wrap_sro_data.py
 *This assumes your audio files are in `wav/` and transcripts in `txt/`. It outputs `metadata.csv`.*
 
 **B. Download Hugging Face Assets (Internet Connection Required)**
-Run these commands on your desktop or the HPC **login node**:
+
+Three ways: 1. Using pip, 2. using uv, or 3. by using one of those on a local
+machine (laptop, desktop) and the rsync the files to the HPC/remote system.
+
+### Using pip
 
 ```bash
 # Download the Whisper-tiny model locally
-huggingface-cli download openai/whisper-tiny --local-dir ./local-whisper-tiny
+hf download openai/whisper-tiny --local-dir ./local-whisper-tiny
 
 # Download WER and CER evaluation scripts locally
 mkdir -p metrics
 python -c "import evaluate; evaluate.load('wer').save_local('./metrics/wer')"
 python -c "import evaluate; evaluate.load('cer').save_local('./metrics/cer')"
+
+```
+
+### Using uv
+
+```bash
+# Download the Whisper-tiny model locally
+uvx hf download openai/whisper-tiny --local-dir ./local-whisper-tiny
+
+# Download WER and CER evaluation scripts locally
+mkdir -p metrics
+mkdir -p ./metrics/wer
+mkdir -p ./metrics/cer
+curl -L https://huggingface.co/spaces/evaluate-metric/wer/raw/main/wer.py -o ./metrics/wer/wer.py
+curl -L https://huggingface.co/spaces/evaluate-metric/cer/raw/main/cer.py -o ./metrics/cer/cer.py
 
 ```
 
