@@ -15,7 +15,7 @@ import evaluate
 from dataclasses import dataclass
 from typing import Any
 
-from datasets import load_dataset, Audio, DatasetDict
+from datasets import load_dataset, Audio, DatasetDict, Features, Value
 from transformers import (
     WhisperFeatureExtractor,
     WhisperTokenizer,
@@ -112,17 +112,18 @@ def main() -> None:
     """
     print("Loading datasets and setting up splits...")
 
-    # Load dataset strictly using keyword arguments
+    # Define features upfront to bypass the PyArrow cast error
+    features = Features({
+        "audio": Audio(sampling_rate=config.sampling_rate),
+        "sentence": Value("string")
+    })
+
+    # Load dataset strictly using keyword arguments and the predefined features
     dataset_full = load_dataset(
         path="csv",
         data_files=config.metadata_csv,
-        split="train"
-    )
-
-    # Cast the audio column to parse the WAV files appropriately
-    dataset_full = dataset_full.cast_column(
-        column="audio",
-        feature=Audio(sampling_rate=config.sampling_rate)
+        split="train",
+        features=features
     )
 
     # Split data to guarantee distinct train/test distributions
