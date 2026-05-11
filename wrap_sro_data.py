@@ -1,8 +1,8 @@
 import os
 import pandas as pd
 
-wav_dir = 'wav'
-txt_dir = 'txt'
+wav_dir = 'sand-psalm/wav'
+txt_dir = 'sand-psalm/sro'
 output_csv = 'metadata.csv'
 
 dataset_records = []
