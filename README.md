@@ -40,7 +40,6 @@ Map your `.wav` and `.sro` files into a unified dataset:
 
 ```bash
 python wrap_sro_data.py
-
 ```
 
 *This assumes your audio files are in `wav/` and transcripts in `txt/`. It outputs `metadata.csv`.*
@@ -55,12 +54,6 @@ machine (laptop, desktop) and the rsync the files to the HPC/remote system.
 ```bash
 # Download the Whisper-tiny model locally
 hf download openai/whisper-tiny --local-dir ./local-whisper-tiny
-
-# Download WER and CER evaluation scripts locally
-mkdir -p metrics
-python -c "import evaluate; evaluate.load('wer').save_local('./metrics/wer')"
-python -c "import evaluate; evaluate.load('cer').save_local('./metrics/cer')"
-
 ```
 
 ### Using uv
@@ -68,14 +61,17 @@ python -c "import evaluate; evaluate.load('cer').save_local('./metrics/cer')"
 ```bash
 # Download the Whisper-tiny model locally
 uvx hf download openai/whisper-tiny --local-dir ./local-whisper-tiny
+```
 
+### Get the metrics scripts
+
+```bash
 # Download WER and CER evaluation scripts locally
 mkdir -p metrics
 mkdir -p ./metrics/wer
 mkdir -p ./metrics/cer
 curl -L https://huggingface.co/spaces/evaluate-metric/wer/raw/main/wer.py -o ./metrics/wer/wer.py
 curl -L https://huggingface.co/spaces/evaluate-metric/cer/raw/main/cer.py -o ./metrics/cer/cer.py
-
 ```
 
 ## 3. Running on a Desktop (Local CPU)
@@ -127,7 +123,6 @@ python train_whisper.py --config configs/narval_full.yaml
 
 echo "Starting Evaluation..."
 python test_whisper.py --config configs/narval_full.yaml
-
 ```
 
 Submit your job to the cluster scheduler:
@@ -138,7 +133,3 @@ sbatch submit_narval.sh
 ```
 
 You can monitor your job's progress using `sq` and read the output logs using `tail -f cree_whisper-<job_id>.out`.
-
-```
-
-```

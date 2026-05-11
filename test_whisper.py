@@ -19,8 +19,9 @@ import csv
 import torch
 import evaluate
 
-from datasets import load_dataset, Audio, DatasetDict
+from datasets import load_dataset, Audio, DatasetDict, Features, Value
 from transformers import pipeline
+from tqdm import tqdm
 
 
 def main() -> None:
@@ -32,16 +33,18 @@ def main() -> None:
     """
     print("Loading Fine-Tuned Cree Whisper Model for Evaluation...")
 
+    # Define features upfront to bypass the PyArrow cast error
+    features = Features({
+        "audio": Audio(sampling_rate=config.sampling_rate, decode=False),
+        "sentence": Value("string")
+    })
+
     # Load dataset utilizing kwarg convention
     dataset_full = load_dataset(
         path="csv",
         data_files=config.metadata_csv,
-        split="train"
-    )
-
-    dataset_full = dataset_full.cast_column(
-        column="audio",
-        feature=Audio(sampling_rate=config.sampling_rate)
+        split="train",
+        features=features
     )
 
     # CRITICAL: Preserve random seed and test size exact configuration
@@ -50,8 +53,7 @@ def main() -> None:
         test_size=config.test_size,
         seed=config.random_seed
     )
-    test_dataset = dataset["test"]
-
+    test_dataset = dataset["test"].with_format("python")
     device: str = "cuda:0" if torch.cuda.is_available() else "cpu"
 
     # Define strict pipeline loading
@@ -63,6 +65,9 @@ def main() -> None:
         device=device
     )
 
+    transcriber.model.config.forced_decoder_ids = None
+    transcriber.model.generation_config.suppress_tokens = None
+
     wer_metric = evaluate.load(path=config.wer_metric_path)
     cer_metric = evaluate.load(path=config.cer_metric_path)
 
@@ -70,23 +75,22 @@ def main() -> None:
     predictions: list[str] = []
     results_data: list[list[str]] = []
 
-    total_samples: int = len(test_dataset)
-    print(f"Evaluating {total_samples} samples. This may take a moment.")
+    print(
+        f"Evaluating {len(list(test_dataset))} samples. "
+        "This may take a moment."
+    )
 
     # Iterate through the split test set for metric acquisition
-    for i in range(total_samples):
-        sample = test_dataset[i]
-        audio_array = sample["audio"]["array"]
-        ground_truth: str = sample["sentence"]
+    for sample in tqdm(test_dataset):
         audio_path: str = sample["audio"]["path"]
+        ground_truth: str = sample["sentence"]
 
-        # Execute transcript generation
-        prediction: str = transcriber(audio_array)["text"]
+        # The pipeline (transcriber) can take a file path string directly.
+        # It handles decoding and resampling to 16kHz internally.
+        prediction: str = transcriber(audio_path)["text"]
 
         references.append(ground_truth)
         predictions.append(prediction)
-
-        # Store layout mapping for file serialization
         results_data.append([audio_path, ground_truth, prediction])
 
     print(f"Writing detailed predictions to {config.test_results_tsv}...")
