@@ -6,15 +6,21 @@ training run using identical dataset splitting parameters.
 It calculates Character Error Rate (CER) and Word Error Rate (WER).
 """
 
+import os
+from config import config
+
+# Conditionally disable CUDA visibility to prevent unsupported hardware
+# warnings on local machines. This allows the same script to seamlessly
+# utilize A100 GPUs on the Narval cluster when use_cpu is False.
+if getattr(config, "use_cpu", False):
+    os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 import csv
 import torch
 import evaluate
 
 from datasets import load_dataset, Audio, DatasetDict
 from transformers import pipeline
-
-# Import our custom configuration to maintain synchronization
-from config import config
 
 
 def main() -> None:

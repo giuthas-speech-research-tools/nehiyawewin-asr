@@ -13,7 +13,7 @@ metadata_csv: "metadata.csv"
 output_dir: "./whisper-tiny-cree-finetuned-test"
 
 # Training Hyperparameters (Tiny values for a quick run)
-train_batch_size: 32
+train_batch_size: 64
 grad_accum_steps: 4
 learning_rate: 1.0e-5
 warmup_steps: 2
@@ -21,3 +21,8 @@ max_steps: 10
 save_steps: 5
 eval_steps: 5
 logging_steps: 2
+
+# Advanced Flags (Disabled for CPU)
+bf16: false
+gradient_checkpointing: false
+dataloader_num_workers: 0

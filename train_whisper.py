@@ -10,6 +10,15 @@ Cree is not a natively supported language in default Whisper,
 so the language forcing configuration is disabled.
 """
 
+import os
+from config import config
+
+# Conditionally disable CUDA visibility to prevent unsupported hardware
+# warnings on local machines. This allows the same script to seamlessly
+# utilize A100 GPUs on the Narval cluster when use_cpu is False.
+if getattr(config, "use_cpu", False):
+    os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 import torch
 import evaluate
 from dataclasses import dataclass
@@ -25,9 +34,6 @@ from transformers import (
     Seq2SeqTrainer,
 )
 from transformers.trainer_utils import EvalPrediction
-
-# Import our custom configuration
-from config import config
 
 
 @dataclass
@@ -227,11 +233,17 @@ def main() -> None:
         pretrained_model_name_or_path=config.base_model_id
     )
 
-    # Disable language forcing for Cree specifically
+    # Disable language forcing for Cree and configure generation tokens
     model.generation_config.language = None
     model.generation_config.task = "transcribe"
     model.generation_config.forced_decoder_ids = None
-    model.generation_config.suppress_tokens = []
+
+    # Explicitly set the pad_token_id to silence attention mask warnings
+    model.generation_config.pad_token_id = tokenizer.pad_token_id
+
+    # Set to None rather than an empty list to prevent the Seq2SeqTrainer
+    # from double-instantiating the logits processor during generation.
+    model.generation_config.suppress_tokens = None
 
     print("Assembling Training Arguments...")
     training_args = Seq2SeqTrainingArguments(
@@ -249,6 +261,9 @@ def main() -> None:
         logging_steps=config.logging_steps,
         report_to=["tensorboard"],
         use_cpu=config.use_cpu,
+        bf16=config.bf16,
+        gradient_checkpointing=config.gradient_checkpointing,
+        dataloader_num_workers=config.dataloader_num_workers,
     )
 
     trainer = Seq2SeqTrainer(
