@@ -6,7 +6,7 @@ test_size: 0.1
 sampling_rate: 16000
 
 # Paths
-base_model_id: "/mnt/hf_cache/whisper_local_models/whisper_tiny"
+base_model_id: "/mnt/hf_cache/local_whisper_models/whisper_tiny"
 output_dir: "/mnt/hf_cache/whisper-tiny-finetuned"
 metadata_csv: "./metadata.csv"  # REQUIRED: Added missing key
 wer_metric_path: "wer"                       # REQUIRED: Added missing key
