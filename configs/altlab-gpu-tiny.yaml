@@ -1,0 +1,29 @@
+# Hardware & Data
+num_processors: 4          # Lowered from 12 (adjust to match your VM's vCPUs)
+use_cpu: false
+random_seed: 42
+test_size: 0.1
+sampling_rate: 16000
+
+# Paths
+base_model_id: "whisper_local_models/whisper_tiny"
+output_dir: "./whisper-tiny-cree-fine-tuned"
+metadata_csv: "./metadata.csv"  # REQUIRED: Added missing key
+wer_metric_path: "wer"                       # REQUIRED: Added missing key
+cer_metric_path: "cer"                       # REQUIRED: Added missing key
+
+# Training Hyperparameters
+train_batch_size: 32     # Whisper-tiny is small; 32 should easily fit in VM VRAM
+grad_accum_steps: 2      
+learning_rate: 1.0e-5    
+warmup_steps: 50         # Lowered to 50 because epochs will pass faster
+max_steps: 1000          
+save_steps: 25           # Lowered to evaluate/save frequently on small data
+eval_steps: 25           # Lowered to match save_steps
+logging_steps: 5         # Lowered so you aren't waiting forever to see console outputs
+
+# Advanced Flags
+bf16: true                 # Change to false if nvidia-smi shows an older GPU (T4, V100)
+gradient_checkpointing: true
+dataloader_num_workers: 4  # Lowered from 12 to prevent CPU bottlenecking
+predict_with_generate: true
