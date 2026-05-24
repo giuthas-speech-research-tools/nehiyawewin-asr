@@ -288,7 +288,7 @@ def main() -> None:
         callbacks=[EarlyStoppingCallback(early_stopping_patience=3)],
     )
 
-    print("Commencing CPU-based Seq2Seq Training...")
+    print("Commencing Seq2Seq Training...")
     trainer.train()
 
     print("Training Completed. Saving Model Weights and Configs...")
