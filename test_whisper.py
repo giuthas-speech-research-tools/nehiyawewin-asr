@@ -66,7 +66,7 @@ def main() -> None:
         tokenizer=config.final_model_dir,
         feature_extractor=config.final_model_dir,
         device=device,
-        torch_dtype=compute_dtype,
+        dtype=compute_dtype,
         batch_size=16
     )
 
@@ -88,7 +88,7 @@ def main() -> None:
     audio_paths = [sample["audio"]["path"] for sample in test_dataset]
 
     # Zip the batched predictions together with the original dataset
-    for out, sample in zip(tqdm(transcriber(audio_paths)), test_dataset):
+    for out, sample in zip(tqdm(transcriber(audio_paths), total=len(audio_paths)), test_dataset):
         audio_path: str = sample["audio"]["path"]
         ground_truth: str = sample["sentence"]
         prediction: str = out["text"]
