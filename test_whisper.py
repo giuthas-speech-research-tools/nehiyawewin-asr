@@ -56,13 +56,18 @@ def main() -> None:
     test_dataset = dataset["test"].with_format("python")
     device: str = "cuda:0" if torch.cuda.is_available() else "cpu"
 
+    # Use bfloat16 for Hopper GPUs (H100), but standard float32 for CPUs
+    compute_dtype = torch.float32 if device == "cpu" else torch.bfloat16
+
     # Define strict pipeline loading
     transcriber = pipeline(
         task="automatic-speech-recognition",
         model=config.final_model_dir,
         tokenizer=config.final_model_dir,
         feature_extractor=config.final_model_dir,
-        device=device
+        device=device,
+        torch_dtype=compute_dtype,
+        batch_size=16
     )
 
     transcriber.model.config.forced_decoder_ids = None
@@ -80,14 +85,13 @@ def main() -> None:
         "This may take a moment."
     )
 
-    # Iterate through the split test set for metric acquisition
-    for sample in tqdm(test_dataset):
+    audio_paths = [sample["audio"]["path"] for sample in test_dataset]
+
+    # Zip the batched predictions together with the original dataset
+    for out, sample in zip(tqdm(transcriber(audio_paths)), test_dataset):
         audio_path: str = sample["audio"]["path"]
         ground_truth: str = sample["sentence"]
-
-        # The pipeline (transcriber) can take a file path string directly.
-        # It handles decoding and resampling to 16kHz internally.
-        prediction: str = transcriber(audio_path)["text"]
+        prediction: str = out["text"]
 
         references.append(ground_truth)
         predictions.append(prediction)
