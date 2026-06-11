@@ -100,7 +100,8 @@ rsync -avzP ./sand-psalm your_username@narval.computecanada.ca:~/whisper-test/
 
 ## 3. Running on a Desktop (Local CPU)
 
-The desktop environments are driven directly via the terminal using the provided YAML configuration files.
+The desktop environments are driven directly via the terminal using the
+provided YAML configuration files.
 
 **Short Sanity Check (Validates data mapping and loss calculation):**
 
@@ -118,7 +119,90 @@ python test_whisper.py --config configs/desktop_full.yaml
 
 ```
 
-## 4. Running on Digital Alliance Narval (HPC GPU)
+
+
+## 4. Running on altlab-gpu (HPC GPU slice)
+
+### A. Get the tools
+
+Make sure that you have all you need installed on the slice. If things are as
+originally setup in May 2026 there will be `uv`, `pip` and the rest. To install
+packages you'll either need sudo access, or in the case of `uv` you can just do
+a local install in your home directory (this is the default).
+
+*This needs a list of the commands to install everything*
+
+### B. Get the data
+
+#### Easiest ways
+
+This may require some juggling depending on what the ethics and data
+sovereignty rules say. The easiest ways to get data uploaded is with `scp` or
+`rsync` which means uploading the files from a commandline from outside of the
+system, or by having them in a place where they can be accessed with `wget` or
+`curl` from inside the altlab-gpu environment. 
+
+#### Google drive
+
+**Note** Needs to be tested as this is copied/adapted from Stack Overflow answer https://stackoverflow.com/users/3063243/phi
+
+**Caveats**
+- Only works on open access files. ("Anyone who has a link can View") If this
+  is not acceptable then do not use this method.
+- Cannot download more than 50 files into a single folder.
+    - You can consider using tar/zip to make it a single file to work around this limitation.
+
+**/Caveats**
+
+
+To move data from google drive, do it with `gdown` from altlab-gpu.
+Install it with the following command:
+
+```
+pip install gdown
+```
+
+After that, you can download any file from Google Drive by running one of these commands:
+
+```
+gdown https://drive.google.com/uc?id=<file_id>  # for files
+gdown <file_id>                                 # alternative format
+gdown --folder https://drive.google.com/drive/folders/<file_id>  # for folders
+gdown --folder --id <file_id>                                   # this format works for folders too
+```
+
+Example: to download the readme file from this directory
+
+```
+gdown https://drive.google.com/uc?id=0B7EVK8r0v71pOXBhSUdJWU1MYUk
+```
+
+The file_id should look something like 0Bz8a_Dbh9QhbNU3SGlFaDg. You can find this ID by right-clicking on the file of interest, and selecting Get link. As of November 2021, this link will be of the form:
+
+```
+# Files
+https://drive.google.com/file/d/<file_id>/view?usp=sharing
+# Folders
+https://drive.google.com/drive/folders/<file_id>
+```
+
+
+### C. Run the training
+
+
+
+### D. Analyse the results
+
+- Training time should be reported **and is currently not logged**
+- Loss behaviour needs looked at
+- WER and CAR should be listed and reported
+
+
+## Appendices
+
+### A. Running on Digital Alliance Narval (HPC GPU)
+
+**Note** This was never used, and therefore is untested.
 
 To run on Narval, you cannot execute Python directly on the head node. You must submit a Slurm batch script that sets strict offline environment variables, requests an A100 GPU, and points to the `narval_full.yaml` config.
 
