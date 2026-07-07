@@ -120,7 +120,6 @@ python test_whisper.py --config configs/desktop_full.yaml
 ```
 
 
-
 ## 4. Running on altlab-gpu (HPC GPU slice)
 
 ### A. Get the tools
