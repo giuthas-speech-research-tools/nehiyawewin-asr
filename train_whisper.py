@@ -276,6 +276,7 @@ def main() -> None:
         metric_for_best_model="loss",
         greater_is_better=False,
         save_total_limit=5,
+        optim="adamw_bnb_8bit",
     )
 
     trainer = Seq2SeqTrainer(
@@ -292,7 +293,10 @@ def main() -> None:
     print("Commencing Seq2Seq Training...")
     train_result = trainer.train()
 
-    print("Training Completed. Saving Model Weights and Configs...")
+    print(
+        f"Training Completed. Saving Model Weights and "
+        f"Configs to {config.final_model_dir}."
+    )
     trainer.save_model(output_dir=config.final_model_dir)
     processor.save_pretrained(save_directory=config.final_model_dir)
 
