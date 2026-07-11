@@ -28,12 +28,11 @@ pip install torch transformers datasets evaluate pandas pyyaml
 ```
 
 ### Using uv:
+
 No need to do anything here. Just replace all `python` calls with `uv run python` in the next steps.
 
 
-## 2. Prepare Data and Offline Assets
-
-Compute nodes on HPC environments (like Narval) are air-gapped and lack internet access. You must download the model weights and evaluation metrics to your local directory *before* submitting your Slurm jobs.
+## Prepare Data and Offline Assets
 
 **A. Generate Metadata**
 Map your `.wav` and `.sro` files into a unified dataset:
@@ -42,12 +41,14 @@ Map your `.wav` and `.sro` files into a unified dataset:
 python wrap_sro_data.py
 ```
 
-*This assumes your audio files are in `wav/` and transcripts in `txt/`. It outputs `metadata.csv`.*
+*This assumes your audio files are in `wav/` and transcripts in `txt/`. It
+outputs `metadata.csv`.*
 
 **B. Download Hugging Face Assets (Internet Connection Required)**
 
-Three ways: 1. Using pip, 2. using uv, or 3. by using one of those on a local
-machine (laptop, desktop) and the rsync the files to the HPC/remote system.
+Run this where ever you are going to keep the local untuned whisper models. In
+the altlab-gpu setup this is `/data/plains-cree-asr/hf_cache/`.
+
 
 ### Using pip
 
@@ -63,6 +64,19 @@ hf download openai/whisper-tiny --local-dir ./local-whisper-tiny
 uvx hf download openai/whisper-tiny --local-dir ./local-whisper-tiny
 ```
 
+### In practice on altlab-gpu
+
+This is how this was done on altlab-gpu. Replace `tiny base small medium large`
+below with a list of the models you actually want. 
+
+```bash
+mkdir local_whisper_models
+for model in tiny base small medium large; 
+do hf download openai/whisper-$model --local-dir ./local_whisper_models/whisper-$model; 
+done
+```
+
+
 ### Get the metrics scripts
 
 ```bash
@@ -74,11 +88,16 @@ curl -L https://huggingface.co/spaces/evaluate-metric/wer/raw/main/wer.py -o ./m
 curl -L https://huggingface.co/spaces/evaluate-metric/cer/raw/main/cer.py -o ./metrics/cer/cer.py
 ```
 
-## C. Upload files to HPC
+## Upload files to HPC
 
-First clone this repository on HPC. For this you should most likely generate a ssh key (in what ever is the latest, bestest format) on HPC and then upload it on github. 
+First clone this repository on HPC. For this you should most likely generate a
+ssh key (in what ever is the latest, bestest format) on HPC and then upload it
+on github. 
 
-Compute nodes on HPC environments (like Narval) are air-gapped and lack internet access. Because specialized tools like huggingface-cli might not be installed on your HPC cluster, you should upload the weights and what not locally on the node.
+Compute nodes on HPC environments (like Narval) maybe air-gapped and therefore
+lack internet access. Because specialized tools like huggingface-cli might not
+be installed on your HPC cluster, you should upload the weights and what not
+locally on the node.
 
 Run these inside the repository on your own machine.
 
@@ -98,7 +117,9 @@ rsync -avzP ./local-whisper-small your_username@narval.computecanada.ca:~/whispe
 rsync -avzP ./sand-psalm your_username@narval.computecanada.ca:~/whisper-test/
 ```
 
-## 3. Running on a Desktop (Local CPU)
+## Running the training
+
+### Running on a Desktop (Local CPU)
 
 The desktop environments are driven directly via the terminal using the
 provided YAML configuration files.
@@ -119,21 +140,22 @@ python test_whisper.py --config configs/desktop_full.yaml
 
 ```
 
+### Running on altlab-gpu (HPC GPU slice)
 
-## 4. Running on altlab-gpu (HPC GPU slice)
-
-### A. Get the tools
+#### Get the tools
 
 Make sure that you have all you need installed on the slice. If things are as
 originally setup in May 2026 there will be `uv`, `pip` and the rest. To install
 packages you'll either need sudo access, or in the case of `uv` you can just do
 a local install in your home directory (this is the default).
 
-*This needs a list of the commands to install everything*
+*This is where the list of the commands to install everything goes*
 
-### B. Get the data
+#### Get the data
 
-#### Easiest ways
+*comment here what actually was done*
+
+##### Easiest ways
 
 This may require some juggling depending on what the ethics and data
 sovereignty rules say. The easiest ways to get data uploaded is with `scp` or
@@ -141,7 +163,7 @@ sovereignty rules say. The easiest ways to get data uploaded is with `scp` or
 system, or by having them in a place where they can be accessed with `wget` or
 `curl` from inside the altlab-gpu environment. 
 
-#### Google drive
+##### Google drive
 
 **Note** Needs to be tested as this is copied/adapted from Stack Overflow answer https://stackoverflow.com/users/3063243/phi
 
@@ -152,7 +174,6 @@ system, or by having them in a place where they can be accessed with `wget` or
     - You can consider using tar/zip to make it a single file to work around this limitation.
 
 **/Caveats**
-
 
 To move data from google drive, do it with `gdown` from altlab-gpu.
 Install it with the following command:
@@ -186,16 +207,17 @@ https://drive.google.com/drive/folders/<file_id>
 ```
 
 
-### C. Run the training
+### Run the training
 
+```bash
 
+```
 
 ### D. Analyse the results
 
 - Training time should be reported **and is currently not logged**
-- Loss behaviour needs looked at
-- WER and CAR should be listed and reported
 
+Get the training
 
 ## Appendices
 
