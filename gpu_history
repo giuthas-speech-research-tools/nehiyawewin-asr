@@ -1,0 +1,216 @@
+sudo ls
+sudo ls /
+mkdir .ssh
+cat > .ssh/authorized_keys
+cat >>.ssh/authorized_keys
+ssh -Q key
+man ssh-keygen
+cat >>.ssh/authorized_keys
+ls
+which git
+exit
+uv tool install hf
+hf --help
+hf auth login
+mkdir local_whisper_models
+ls local_whisper_models/
+for model in tiny base small medium; do hf download openai/whisper-$model --local-dir ./local_whisper_models/whisper-$model; done
+mv local_whisper_models/ whisper-test/
+cd whisper-test/
+ls
+ls -a
+ls .ssh
+ssh-keygen -t ed25519 
+less .ssh/id_ed25519.pub 
+git clone https://github.com/giuthas-speech-research-tools/whisper-test/
+git clone git@github.com:giuthas-speech-research-tools/whisper-test.git
+ls
+which uv
+which python
+quota
+which hf
+which curl
+curl -LsSf https://hf.co/cli/install.sh | bash
+sudo apt update
+chpasswd
+passwd
+sudo apt upgrade
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv tool install hf
+ps
+bash
+ls whisper-test/
+cd whisper-test/
+mkdir sand-psalm
+ls
+ls sand-psalm/
+ls
+cd whisper-test/
+ls
+uv run wrap_sro_data.py 
+ls
+ls local_whisper_models/
+mv local_whisper_models/whisper-tiny/ local_whisper_tiny
+ls config
+ls configs
+mv local_whisper_tiny/ local_whisper_models/whisper_tiny
+nvidia-smi
+nproc
+lscpu
+git pull
+uv python train_whisper.py --config configs/altlab-gpu-tiny.yaml 
+uv run python train_whisper.py --config configs/altlab-gpu-tiny.yaml 
+ls
+pico configs/altlab-gpu-tiny.yaml 
+uv run python train_whisper.py --config configs/altlab-gpu-tiny.yaml 
+sudo apt update
+sudo apt upgrade
+sudo apt install ffmpeg
+ffmpeg --version
+ffmpeg -v
+ffmpeg -version
+uv run python train_whisper.py --config configs/altlab-gpu-tiny.yaml 
+df -h
+rm -rf ~/.cache/huggingface/datasets/*
+df -h
+sudo mkdir -p /mnt/hf_cache
+sudo chown -R $USER:$USER /mnt/hf_cache
+export HF_DATASETS_CACHE="/mnt/hf_cache"
+uv run python train_whisper.py --config configs/altlab-gpu-tiny.yaml 
+which tmux
+rm -rf ./whisper-tiny-cree-finetuned
+export HF_DATASETS_CACHE="/mnt/hf_cache"
+uv run python train_whisper.py --config configs/altlab-gpu-tiny.yaml
+export HF_DATASETS_CACHE="/mnt/hf_cache"
+uv run python train_whisper.py --config configs/altlab-gpu-tiny.yaml
+sudo mkdir -p /mnt/tmp
+sudo chown -R $USER:$USER /mnt/tmp
+sudo chmod 1777 /mnt/tmp
+export TMPDIR="/mnt/tmp"
+export HF_DATASETS_CACHE="/mnt/hf_cache"
+rm -rf ~/whisper-test/whisper-tiny-cree-finetuned
+rm -rf ~/.cache/huggingface/datasets/*
+uv run python train_whisper.py --config configs/altlab-gpu-tiny.yaml
+df -h
+ls
+du local_whisper_models/*
+du -g local_whisper_models/*
+du -m local_whisper_models/*
+du -m .
+mv local_whisper_models/ /mnt/hf_cache/
+df -h
+du -s -m .
+rm -rf ~/.cache/huggingface/datasets/*
+rm -rf ~/whisper-test/whisper-tiny-cree-finetuned
+df -h
+git pull
+pico configs/altlab-gpu-tiny.yaml 
+git stash
+git pull
+pico configs/altlab-gpu-tiny.yaml 
+ls
+du -s -m whisper-tiny-cree-fine-tuned/
+rm -rf whisper-tiny-cree-fine-tuned/
+df -h
+ls
+export TMPDIR="/mnt/tmp"
+export HF_DATASETS_CACHE="/mnt/hf_cache"
+uv run python train_whisper.py --config configs/altlab-gpu-tiny.yaml
+ls -la /mnt/hf_cache/whisper_local_models/whisper_tiny
+ls /mnt/hf_cache/
+git pull
+uv run python train_whisper.py --config configs/altlab-gpu-tiny.yaml
+nvidia-sm
+nvidia-smi
+git pull
+hf
+vf -h
+fv -h
+df -h
+git status
+tmux attach -t whisper
+tmux new -s whisper
+exit
+tmux attach -t whisper
+tmux attach -t whisper_run
+tmux attach -t whisper
+git pull
+cd whisper-test/
+git pull
+tmux attach -t whisper
+export TMPDIR="/mnt/tmp"
+export HF_DATASETS_CACHE="/mnt/hf_cache"
+uv run python train_whisper.py --config configs/altlab-gpu-small.yaml 
+ls /mnt/hf_cache/local_whisper_models/
+git pull
+uv run python train_whisper.py --config configs/altlab-gpu-small.yaml 
+uv run python train_whisper.py --config configs/altlab-gpu-medium.yaml 
+git pull
+uv run python train_whisper.py --config configs/altlab-gpu-base.yaml 
+ls
+uv run python test-whisper.py --config configs/altlab-gpu-tiny.yaml 
+ls
+uv run python test_whisper.py --config configs/altlab-gpu-tiny.yaml 
+less /mnt/hf_cache/whisper-tiny-finetuned/test_results.tsv
+ls /mnt/hf_cache/whisper-tiny-finetuned/
+ls /mnt/hf_cache/whisper-tiny-finetuned/runs/
+less /mnt/hf_cache/whisper-tiny-finetuned/runs/May24_07-36-49_altlab-gpu/events.out.tfevents.1779608209.altlab-gpu.48518.0 
+git pull
+uv run python test_whisper.py --config configs/altlab-gpu-base.yaml 
+uv run python test_whisper.py --config configs/altlab-gpu-small.yaml 
+uv run python test_whisper.py --config configs/altlab-gpu-medium.yaml 
+cat /mnt/hf_cache/whisper-medium-finetuned/train_results.json
+tail /mnt/hf_cache/whisper-medium-finetuned/checkpoint-200/trainer_state.json 
+tail -n 50 /mnt/hf_cache/whisper-medium-finetuned/checkpoint-200/trainer_state.json 
+tmux kill-session
+tail -n 50 /mnt/hf_cache/whisper-tiny-finetuned/checkpoint-375/trainer_state.json 
+git pull
+cd whisper-test/
+git pull
+uv run python extract_logs.py /mnt/hf_cache/whisper-tiny-finetuned/
+uv run python extract_logs.py --dir /mnt/hf_cache/whisper-tiny-finetuned/ --csv tiny.csv
+less tiny.csv 
+uv run python extract_logs.py --dir /mnt/hf_cache/whisper-base-finetuned/ --csv base.csv
+less base.csv 
+uv run python extract_logs.py --dir /mnt/hf_cache/whisper-small-finetuned/ --csv small.csv
+uv run python extract_logs.py --dir /mnt/hf_cache/whisper-medium-finetuned/ --csv medium.csv
+tail small.csv 
+tail medium.csv 
+head medium.csv 
+tail tiny.csv 
+tail bse.csv 
+tail base.csv 
+df -h
+ls
+cd .ssh/
+ls
+cat authorized_keys 
+cat >> authorized_keys 
+tail medium.csv 
+ls
+cd whisper-test/
+ls
+tail small.csv
+head small.csv 
+cd whisper-test/
+ls
+ls metrics/
+ls sand-psalm/
+cd 
+ls
+ls /
+ls tmp
+ls /tmp
+ls /etc
+ls /mnt/hf_cache/
+ls /mnt/hf_cache/csv
+ls /mnt/hf_cache/csv/default-b29a8bab09ced212/
+ls /mnt/hf_cache/csv/default-b29a8bab09ced212/0.0.0/
+ls /mnt/hf_cache/csv/default-b29a8bab09ced212/0.0.0/d41f37fffd4cc4dfd07485b661c45b9863c2d0a8b0a28faa84befecfef33631a/
+ls /mnt/hf_cache/whisper-tiny-finetuned/
+ls /mnt/hf_cache/whisper-tiny-finetuned/final/
+ls /mnt/hf_cache/whisper-tiny-finetuned/runs/
+ls /mnt/hf_cache/whisper-tiny-finetuned/runs/May24_07-36-49_altlab-gpu/
+less /mnt/hf_cache/whisper-tiny-finetuned/checkpoint-375/trainer_state.json 
+du /mnt/hf_cache/*
+exit
