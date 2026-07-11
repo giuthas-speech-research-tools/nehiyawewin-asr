@@ -11,6 +11,7 @@ so the language forcing configuration is disabled.
 """
 
 import os
+import csv
 from config import config
 
 # Conditionally disable CUDA visibility to prevent unsupported hardware
@@ -289,11 +290,38 @@ def main() -> None:
     )
 
     print("Commencing Seq2Seq Training...")
-    trainer.train()
+    train_result = trainer.train()
 
     print("Training Completed. Saving Model Weights and Configs...")
     trainer.save_model(output_dir=config.final_model_dir)
     processor.save_pretrained(save_directory=config.final_model_dir)
+
+    print("Exporting training statistics and loss development...")
+    trainer.save_metrics("train", train_result.metrics)
+    trainer.save_state()
+
+    history_path = os.path.join(config.final_model_dir, "loss_development.csv")
+    with open(history_path, "w", newline="", encoding="utf-8") as file:
+        if trainer.state.log_history:
+            # extract all unique metric keys (loss, learning_rate, wer, etc.)
+            fieldnames = sorted(
+                list(
+                    {
+                        k for log in trainer.state.log_history
+                        for k in log.keys()
+                    }
+                )
+            )
+
+            # Put 'step' and 'epoch' first so they form the leftmost columns
+            for col in ["epoch", "step"]:
+                if col in fieldnames:
+                    fieldnames.remove(col)
+                    fieldnames.insert(0, col)
+
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(trainer.state.log_history)
 
 
 if __name__ == "__main__":
