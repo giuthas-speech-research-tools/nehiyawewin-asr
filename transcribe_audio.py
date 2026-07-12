@@ -63,6 +63,8 @@ def transcribe_audio(model_dir: str, audio_path: str) -> str:
         # },
     )
 
+    print(result)
+
     return result["text"]
 
 
