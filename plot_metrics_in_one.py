@@ -202,17 +202,23 @@ def process_directories(base_dir: str) -> None:
         return
 
     # Calculate grid dimensions: 2 columns for loss, total 4 columns width
-    n_loss_rows = (n_models + 1) // 2
+    # We add 2 instead of 1 to ensure space for the initial legend slot
+    n_loss_rows = (n_models + 2) // 2
 
     # Initialize a single figure to overlay all training runs
     fig = plt.figure(figsize=(16, 14))
     gs = fig.add_gridspec(2 * n_loss_rows, 4)
 
+    # First slot (top left) reserved strictly for the legend
+    ax_legend = fig.add_subplot(gs[0:2, 0])
+    ax_legend.axis('off')
+
     # Dynamically generate loss subplots split into 2 columns
     loss_axes = []
     for i in range(n_models):
-        r = i // 2
-        c = i % 2
+        slot = i + 1  # Shift by 1 to leave the 0th slot for the legend
+        r = slot // 2
+        c = slot % 2
         if i == 0:
             ax = fig.add_subplot(gs[r * 2:(r + 1) * 2, c])
         else:
@@ -245,8 +251,11 @@ def process_directories(base_dir: str) -> None:
 
     # Configure the shared axes once all data has been plotted
     for i, ax in enumerate(loss_axes):
-        # Only set x-label on the bottom-most subplots to reduce clutter
-        if i // 2 == n_loss_rows - 1:
+        # Only set x-label on the bottom-most subplots to reduce clutter If the
+        # slot 2 spots directly below this one exceeds n_models, it's at the
+        # bottom
+        slot = i + 1
+        if slot + 2 > n_models:
             ax.set_xlabel('Steps')
 
         ax.set_ylabel('Loss')
@@ -284,27 +293,14 @@ def process_directories(base_dir: str) -> None:
         for name, t_str, c in model_info
     ]
 
-    # If we have an odd number of models, place the legend in the empty slot
-    if n_models % 2 != 0:
-        # The empty slot is at the last row, second column
-        empty_r = n_loss_rows - 1
-        empty_c = 1
-        ax_legend = fig.add_subplot(gs[empty_r * 2:(empty_r + 1) * 2, empty_c])
-        ax_legend.axis('off')  # Hide the axes lines and ticks entirely
-        ax_legend.legend(
-            handles=time_handles,
-            fontsize='large',
-            title='Training times',
-            title_fontsize='x-large',
-            loc='center'  # Center it beautifully in the empty subplot
-        )
-    else:
-        # Fallback to ax2 if you ever run this with an even number of models
-        ax2.legend(
-            handles=time_handles,
-            title='Training times',
-            loc='upper center'
-        )
+    # Place the legend in the reserved first subplot slot
+    ax_legend.legend(
+        handles=time_handles,
+        fontsize='large',
+        title='Training times',
+        title_fontsize='x-large',
+        loc='upper center'  # Center it beautifully in the first subplot
+    )
 
     # rect=[left, bottom, right, top] leaves a 4% margin at the top for the
     # title
