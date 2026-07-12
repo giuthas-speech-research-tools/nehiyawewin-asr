@@ -2,11 +2,13 @@
 scp altlab-gpu:whisper-test/hf_cache/whisper-tiny-finetuned/checkpoint-350/trainer_state.json tiny/
 scp altlab-gpu:whisper-test/hf_cache/whisper-base-finetuned/checkpoint-250/trainer_state.json base/
 scp altlab-gpu:whisper-test/hf_cache/whisper-small-finetuned/checkpoint-200/trainer_state.json small/
-scp altlab-gpu:whisper-test/hf_cache/whisper-medium-finetuned/checkpoint-125/trainer_state.json medium/
-scp altlab-gpu:whisper-test/hf_cache/whisper-large-finetuned/checkpoint-250/trainer_state.json large/
+scp altlab-gpu:whisper-test/hf_cache/whisper-medium-finetuned/checkpoint-200/trainer_state.json medium/
+scp altlab-gpu:whisper-test/hf_cache/whisper-large-finetuned/checkpoint-175/trainer_state.json large/
 
 # Get the extra logs
-scp whisper-test/hf_cache/whisper-small-finetuned/train_results.tsv small/
+scp altlab-gpu:whisper-test/hf_cache/whisper-large-finetuned/train_results.json large/
+scp altlab-gpu:whisper-test/hf_cache/whisper-large-finetuned/all_results.json large/
+scp altlab-gpu:whisper-test/hf_cache/whisper-small-finetuned/train_results.json small/
 
 # Get the test results at the end of each training.
 scp altlab-gpu:whisper-test/hf_cache/whisper-tiny-finetuned/test_results.tsv tiny/

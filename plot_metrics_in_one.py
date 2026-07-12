@@ -52,6 +52,24 @@ def plot_trainer_state(
     train_df = df.dropna(subset=['loss'])
     eval_df = df.dropna(subset=['eval_loss'])
 
+    # Pre-calculate best step and its corresponding metrics for legends/markers
+    best_step = None
+    best_wer = None
+    best_cer = None
+    if best_ckpt != "Unknown":
+        try:
+            best_step = int(Path(best_ckpt).name.split('-')[-1])
+        except (ValueError, IndexError):
+            pass
+
+    if best_step is not None and not eval_df.empty:
+        eval_row = eval_df[eval_df['step'] == best_step]
+        if not eval_row.empty:
+            if 'eval_wer' in eval_row.columns:
+                best_wer = eval_row['eval_wer'].values[0]
+            if 'eval_cer' in eval_row.columns:
+                best_cer = eval_row['eval_cer'].values[0]
+
     # Set the model name as the title of its specific loss subplot
     ax1.set_title("Loss development: " + run_name)
 
@@ -75,36 +93,51 @@ def plot_trainer_state(
 
     # Plot 2: Error metrics (WER & CER - Legends include model name)
     if 'eval_wer' in eval_df.columns:
+        wer_label = f'{run_name},'
+        if best_wer is not None:
+            wer_label += f' best model WER: {best_wer:.2f}'
+
         ax2.plot(
             eval_df['step'],
             eval_df['eval_wer'],
-            label=f'{run_name} WER',
+            label=wer_label,
             color=model_color,
-            marker='o',
             linestyle='-'
         )
+        # Mark only the best checkpoint with a hollow black circle
+        if best_step is not None and best_wer is not None:
+            ax2.plot(
+                best_step, best_wer,
+                marker='o', markeredgecolor='black', markerfacecolor='none',
+                linestyle='None'
+            )
+
     if 'eval_cer' in eval_df.columns:
+        cer_label = f'{run_name},'
+        if best_cer is not None:
+            cer_label += f' best model CER: {best_cer:.2f}'
+
         ax3.plot(
             eval_df['step'],
             eval_df['eval_cer'],
-            label=f'{run_name} CER',
+            label=cer_label,
             color=model_color,
-            marker='s',
             linestyle='-'
         )
+        # Mark only the best checkpoint with a hollow black circle
+        if best_step is not None and best_cer is not None:
+            ax3.plot(
+                best_step, best_cer,
+                marker='o', markeredgecolor='black', markerfacecolor='none',
+                linestyle='None'
+            )
 
     # Annotate the specific data point matching the best model checkpoint
-    best_step = None
-    if best_ckpt != "Unknown":
-        try:
-            best_step = int(Path(best_ckpt).name.split('-')[-1])
-        except (ValueError, IndexError):
-            pass
-
     if best_step is not None:
         eval_row = eval_df[eval_df['step'] == best_step]
         if not eval_row.empty:
             best_eval_loss = eval_row['eval_loss'].values[0]
+            # Keep arrow annotation for Loss only
             ax1.annotate(
                 f"Best: {run_name}",
                 xy=(best_step, best_eval_loss),
@@ -114,28 +147,6 @@ def plot_trainer_state(
                 color=model_color,
                 fontsize=8
             )
-            if 'eval_wer' in eval_row.columns:
-                best_wer = eval_row['eval_wer'].values[0]
-                ax2.annotate(
-                    f"Best: {run_name} ({best_wer:.2f})",
-                    xy=(best_step, best_wer),
-                    xytext=(10, 10),
-                    textcoords="offset points",
-                    arrowprops=dict(arrowstyle="->", color=model_color),
-                    color=model_color,
-                    fontsize=8
-                )
-            if 'eval_cer' in eval_row.columns:
-                best_cer = eval_row['eval_cer'].values[0]
-                ax3.annotate(
-                    f"Best: {run_name} ({best_cer:.2f})",
-                    xy=(best_step, best_cer),
-                    xytext=(10, 10),
-                    textcoords="offset points",
-                    arrowprops=dict(arrowstyle="->", color=model_color),
-                    color=model_color,
-                    fontsize=8
-                )
 
     return time_str
 
@@ -241,7 +252,7 @@ def process_directories(base_dir: str) -> None:
         ax.set_ylabel('Loss')
         ax.legend(fontsize='small')
         ax.grid(True, linestyle='--', alpha=0.6)
-        ax.set_ylim((-.5, 13))
+        ax.set_ylim((-.25, 3.25))
 
     ax2.set_title('WER Development')
     ax2.set_xlabel('Steps')
@@ -253,7 +264,7 @@ def process_directories(base_dir: str) -> None:
 
     # Custom "Legend-like Card" for Model Training Times
     time_handles = [
-        Line2D([0], [0], color=c, lw=2, label=f"{name} (Time: {t_str})")
+        Line2D([0], [0], color=c, lw=2, label=f"{name}: {t_str}")
         for name, t_str, c in model_info
     ]
     ax2.legend(
@@ -269,6 +280,7 @@ def process_directories(base_dir: str) -> None:
     ax3.set_ylabel('Percentage (%)')
     ax3.legend(fontsize='small')
     ax3.grid(True, linestyle='--', alpha=0.6)
+    ax3.set_ylim((5, 45))
 
     plt.tight_layout()
     output_path = base_path / "combined_training_report.png"
