@@ -1,4 +1,3 @@
-import os
 import csv
 import torch
 from tqdm import tqdm
@@ -73,7 +72,7 @@ def main() -> None:
         results.append([audio_path, reference, prediction])
 
     # 4. Save to TSV
-    output_file = os.path.join(model_path, "test_results.tsv")
+    output_file = config.test_results_tsv
     with open(output_file, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f, delimiter="\t")
         writer.writerow(["audio_path", "reference_sro", "predicted_sro"])
