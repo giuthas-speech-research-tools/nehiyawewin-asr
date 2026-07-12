@@ -69,7 +69,7 @@ def main() -> None:
     parser.add_argument(
         "--model_dir",
         type=str,
-        default="/data/plains-cree-asr/hf_cache/whisper-base-finetuned/final",
+        default="hf_cache/whisper-medium-finetuned/final",
         help="Path to the trained model directory."
     )
     parser.add_argument(
