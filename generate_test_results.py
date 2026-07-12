@@ -49,8 +49,12 @@ def main() -> None:
     for item in tqdm(test_dataset, desc="Transcribing"):
         audio = item["audio"]
         reference = item["sentence"]
+
         # Extract the original string path if available
-        audio_path = audio.get("path", "unknown_path")
+        if isinstance(audio, dict):
+            audio_path = audio.get("path", "unknown_path")
+        else:
+            audio_path = "unknown_path"
 
         # Process the raw audio array
         inputs = processor(
