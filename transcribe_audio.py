@@ -12,29 +12,31 @@ def transcribe_audio(model_dir: str, audio_path: str) -> str:
     else:
         device = "cpu"
 
-    if torch.cuda.is_available():
-        compute_dtype = torch.float16
-    else:
-        compute_dtype = torch.float32
-
     print(f"Loading model from {model_dir}...")
     model = WhisperForConditionalGeneration.from_pretrained(
-        model_dir, torch_dtype=compute_dtype).to(device)
+        model_dir
+    ).to(device)
     processor = WhisperProcessor.from_pretrained(model_dir)
 
     # Mirror your training script generation config
-    model.generation_config.language = None
-    model.generation_config.task = "transcribe"
-    model.generation_config.forced_decoder_ids = None
+    model.generation_config.pad_token_id = (
+        processor.tokenizer.pad_token_id
+    )
     model.generation_config.suppress_tokens = None
 
     print(f"Transcribing {audio_path}...")
     waveform, sampling_rate = torchaudio.load(audio_path)
+
     if waveform.shape[0] > 1:
         waveform = waveform.mean(dim=0, keepdim=True)
+
     if sampling_rate != 16000:
         waveform = torchaudio.functional.resample(
-            waveform, orig_freq=sampling_rate, new_freq=16000)
+            waveform,
+            orig_freq=sampling_rate,
+            new_freq=16000
+        )
+        sampling_rate = 16000
 
     audio_array = waveform.squeeze().numpy()
     chunk_len = 16000 * 30
@@ -42,19 +44,42 @@ def transcribe_audio(model_dir: str, audio_path: str) -> str:
 
     for start in range(0, len(audio_array), chunk_len):
         chunk = audio_array[start: start + chunk_len]
-        input_features = processor(
+
+        processed = processor(
             chunk,
             sampling_rate=16000,
             return_tensors="pt"
-        ).input_features.to(device, dtype=compute_dtype)
+        )
+        input_features = processed.input_features.to(device)
+
+        forced_decoder_ids = processor.get_decoder_prompt_ids(
+            language="en",
+            task="transcribe"
+        )
 
         with torch.no_grad():
-            prediction_ids = model.generate(input_features, max_length=225)
+            prediction_ids = model.generate(
+                input_features,
+                max_length=225,
+                forced_decoder_ids=forced_decoder_ids
+            )
 
-        results.append(processor.tokenizer.batch_decode(
-            prediction_ids, skip_special_tokens=True)[0])
+        raw_tokens = processor.tokenizer.batch_decode(
+            prediction_ids,
+            skip_special_tokens=False
+        )[0]
 
-    print(results)
+        clean_text = processor.tokenizer.batch_decode(
+            prediction_ids,
+            skip_special_tokens=True
+        )[0]
+
+        if not clean_text.strip():
+            print(f"  [DEBUG] Raw generated tokens: {raw_tokens}")
+
+        if clean_text.strip():
+            results.append(clean_text.strip())
+
     return " ".join(results)
 
 
