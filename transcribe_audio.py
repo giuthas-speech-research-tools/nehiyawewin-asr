@@ -28,10 +28,7 @@ def transcribe_audio(model_dir: str, audio_path: str) -> str:
         dtype=compute_dtype,
         model_kwargs={"use_cache": True},  # Re-enables fast inference
         chunk_length_s=30,  # For transcribing files longer than 30 seconds
-        batch_size=8,  # Speeds up long-file processing by batching chunks
     )
-
-    transcriber.tokenizer.pad_token_id = transcriber.tokenizer.eos_token_id
 
     print(f"Transcribing {audio_path}...")
 
@@ -57,13 +54,13 @@ def transcribe_audio(model_dir: str, audio_path: str) -> str:
     result = transcriber(
         inputs={"array": audio_array, "sampling_rate": sampling_rate},
         return_timestamps=False,  # Bypasses the broken chunk-stitching logic
-        generate_kwargs={
-            "language": None,
-            "task": "transcribe",
-            "forced_decoder_ids": None,
-            "suppress_tokens": None,
-            "max_length": 225,
-        },
+        # generate_kwargs={
+        #     "language": None,
+        #     "task": "transcribe",
+        #     "forced_decoder_ids": None,
+        #     "suppress_tokens": None,
+        #     "max_length": 225,
+        # },
     )
 
     return result["text"]
