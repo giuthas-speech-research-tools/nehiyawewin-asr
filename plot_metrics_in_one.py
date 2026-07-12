@@ -71,25 +71,25 @@ def plot_trainer_state(
                 best_cer = eval_row['eval_cer'].values[0]
 
     # Set the model name as the title of its specific loss subplot
-    ax1.set_title("Loss development: " + run_name)
+    ax1.set_title(run_name)
 
     # Plot 1: Loss curves (Legends kept clean, without model name)
-    ax1.plot(
-        train_df['step'],
-        train_df['loss'],
-        label='Train Loss',
-        color=model_color,
-        linestyle='-'
-    )
-
     if not eval_df.empty:
         ax1.plot(
             eval_df['step'],
             eval_df['eval_loss'],
-            label='Eval Loss',
+            label='Evaluation Loss',
             color=model_color,
-            linestyle='--'
+            linestyle='-'
         )
+
+    ax1.plot(
+        train_df['step'],
+        train_df['loss'],
+        label='Training Loss',
+        color=model_color,
+        linestyle='--'
+    )
 
     # Plot 2: Error metrics (WER & CER - Legends include model name)
     if 'eval_wer' in eval_df.columns:
@@ -256,31 +256,20 @@ def process_directories(base_dir: str) -> None:
         ax.grid(True, linestyle='--', alpha=0.6)
         ax.set_ylim((-.25, 3.25))
 
-    ax2.set_title('WER Development')
+    ax2.set_title('Word Error Rate (WER)')
     ax2.set_xlabel('Steps')
     ax2.set_ylabel('Percentage (%)')
 
     # Primary WER legend
     leg_wer = ax2.legend(
         # fontsize='small',
-        loc='upper center'
+        loc='upper right'
     )
     ax2.add_artist(leg_wer)  # Add back so the second legend doesn't wipe it
 
-    # Custom "Legend-like Card" for Model Training Times
-    time_handles = [
-        Line2D([0], [0], color=c, lw=2, label=f"{name}: {t_str}")
-        for name, t_str, c in model_info
-    ]
-    ax2.legend(
-        handles=time_handles,
-        # fontsize='small',
-        title='Training times',
-        loc='upper right'
-    )
     ax2.grid(True, linestyle='--', alpha=0.6)
 
-    ax3.set_title('CER Development')
+    ax3.set_title('Character Error Rate (CER)')
     ax3.set_xlabel('Steps')
     ax3.set_ylabel('Percentage (%)')
     ax3.legend(
@@ -289,7 +278,58 @@ def process_directories(base_dir: str) -> None:
     ax3.grid(True, linestyle='--', alpha=0.6)
     ax3.set_ylim((5, 45))
 
-    plt.tight_layout()
+    # Custom "Legend-like Card" for Model Training Times
+    time_handles = [
+        Line2D([0], [0], color=c, lw=2, label=f"{name}: {t_str}")
+        for name, t_str, c in model_info
+    ]
+
+    # If we have an odd number of models, place the legend in the empty slot
+    if n_models % 2 != 0:
+        # The empty slot is at the last row, second column
+        empty_r = n_loss_rows - 1
+        empty_c = 1
+        ax_legend = fig.add_subplot(gs[empty_r * 2:(empty_r + 1) * 2, empty_c])
+        ax_legend.axis('off')  # Hide the axes lines and ticks entirely
+        ax_legend.legend(
+            handles=time_handles,
+            fontsize='large',
+            title='Training times',
+            title_fontsize='x-large',
+            loc='center'  # Center it beautifully in the empty subplot
+        )
+    else:
+        # Fallback to ax2 if you ever run this with an even number of models
+        ax2.legend(
+            handles=time_handles,
+            title='Training times',
+            loc='upper center'
+        )
+
+    # rect=[left, bottom, right, top] leaves a 4% margin at the top for the
+    # title
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
+
+    # Place text at roughly 25% of the figure width (center of the first two
+    # columns)
+    fig.text(
+        0.25, 0.98,
+        'Loss development',
+        ha='center',
+        va='top',
+        fontsize=16,
+        fontweight='bold'
+    )
+
+    fig.text(
+        0.77, 0.98,
+        'Error rate development',
+        ha='center',
+        va='top',
+        fontsize=16,
+        fontweight='bold'
+    )
+
     output_path = base_path / "combined_training_report.png"
     plt.savefig(output_path, dpi=300)
 
