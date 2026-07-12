@@ -42,8 +42,14 @@ def transcribe_file(
         return_tensors="pt"
     ).input_features.to(device)
 
+    # Generate prediction with forced language to prevent script hallucinations
     with torch.no_grad():
-        predicted_ids = model.generate(inputs, max_length=225)
+        predicted_ids = model.generate(
+            inputs,
+            max_length=225,
+            language="en",
+            task="transcribe"
+        )
 
     prediction = processor.batch_decode(
         predicted_ids, skip_special_tokens=True
