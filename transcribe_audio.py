@@ -52,10 +52,18 @@ def transcribe_audio(model_dir: str, audio_path: str) -> str:
         )
         input_features = processed.input_features.to(device)
 
-        forced_decoder_ids = processor.get_decoder_prompt_ids(
-            language="en",
-            task="transcribe"
-        )
+        # Bypass the Hugging Face tokenizers bug by manually constructing
+        # the forced tokens list for index 1, 2, and 3.
+        lang_id = processor.tokenizer.convert_tokens_to_ids("<|en|>")
+        task_id = processor.tokenizer.convert_tokens_to_ids("<|transcribe|>")
+        no_time_id = processor.tokenizer.convert_tokens_to_ids(
+            "<|notimestamps|>")
+
+        forced_decoder_ids = [
+            (1, lang_id),
+            (2, task_id),
+            (3, no_time_id)
+        ]
 
         with torch.no_grad():
             prediction_ids = model.generate(
