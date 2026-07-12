@@ -59,28 +59,22 @@ def transcribe_audio(model_dir: str, audio_path: str) -> str:
         input_features = processed.input_features.to(device)
 
         with torch.no_grad():
-            # Pass configurations directly into generate() to bypass hidden
-            # fallbacks. We explicitly set the decoder_start_token_id so the
-            # model doesn't start with empty padding tokens.
             prediction_ids = model.generate(
                 input_features,
                 max_length=225,
-                pad_token_id=processor.tokenizer.pad_token_id,
-                decoder_start_token_id=processor.tokenizer.bos_token_id,
-                suppress_tokens=None,
-                forced_decoder_ids=None,
             )
 
-        clean_text = processor.tokenizer.batch_decode(
-            prediction_ids,
-            skip_special_tokens=True
-        )[0]
+        # Extract tokens for this chunk
+        raw_tokens = prediction_ids[0].tolist()
 
-        if not clean_text.strip():
-            print(
-                "  [DEBUG] Raw token IDs output by model: "
-                f"{prediction_ids.tolist()}"
-            )
+        # Filter out special tokens (Whisper specials are always >= 50257)
+        text_tokens = []
+        for token in raw_tokens:
+            if token < 50257:
+                text_tokens.append(token)
+
+        # Decode only the pure text content tokens
+        clean_text = processor.tokenizer.decode(text_tokens)
 
         if clean_text.strip():
             results.append(clean_text.strip())
