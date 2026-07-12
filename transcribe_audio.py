@@ -47,7 +47,13 @@ def transcribe_audio(model_dir: str, audio_path: str) -> str:
     # Run the raw audio array through the model
     result = transcriber(
         inputs={"array": audio_array, "sampling_rate": sampling_rate},
-        generate_kwargs={"task": "transcribe"},  # Force transcription mode
+        return_timestamps=False,  # Bypasses the broken chunk-stitching logic
+        generate_kwargs={
+            "task": "transcribe",
+            # First round of trainings didn't specify language so it defaulted
+            # to English.
+            "language": "en",
+        },
     )
 
     return result["text"]
