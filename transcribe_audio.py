@@ -24,11 +24,13 @@ def transcribe_audio(model_dir: str, audio_path: str) -> str:
         tokenizer=model_dir,
         feature_extractor=model_dir,
         device=device,
-        torch_dtype=compute_dtype,
+        dtype=compute_dtype,
         model_kwargs={"use_cache": True},  # Re-enables fast inference
         chunk_length_s=30,  # For transcribing files longer than 30 seconds
         batch_size=8,  # Speeds up long-file processing by batching chunks
     )
+
+    transcriber.tokenizer.pad_token_id = transcriber.tokenizer.eos_token_id
 
     print(f"Transcribing {audio_path}...")
 
