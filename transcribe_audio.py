@@ -57,15 +57,13 @@ def transcribe_audio(model_dir: str, audio_path: str) -> str:
             return_tensors="pt"
         )
         input_features = processed.input_features.to(device)
-        # Grab the attention mask to silence the warning
-        attention_mask = processed.attention_mask.to(device)
 
         with torch.no_grad():
             # Pass configurations directly into generate() to bypass hidden
-            # fallbacks
+            # fallbacks. We explicitly set the decoder_start_token_id so the
+            # model doesn't start with empty padding tokens.
             prediction_ids = model.generate(
                 input_features,
-                attention_mask=attention_mask,
                 max_length=225,
                 pad_token_id=processor.tokenizer.pad_token_id,
                 decoder_start_token_id=processor.tokenizer.bos_token_id,
