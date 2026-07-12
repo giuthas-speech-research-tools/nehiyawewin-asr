@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 
 import torch
+import torchaudio
 from transformers import pipeline
 
 
@@ -34,9 +35,18 @@ def transcribe_audio(model_dir: str, audio_path: str) -> str:
 
     print(f"Transcribing {audio_path}...")
 
-    # Run the audio through the model
+    # Load with torchaudio to bypass Hugging Face's file streaming bug
+    waveform, sampling_rate = torchaudio.load(audio_path)
+
+    # Convert to mono if the recording is stereo
+    if waveform.shape[0] > 1:
+        waveform = waveform.mean(dim=0, keepdim=True)
+
+    audio_array = waveform.squeeze().numpy()
+
+    # Run the raw audio array through the model
     result = transcriber(
-        inputs=audio_path,
+        inputs={"array": audio_array, "sampling_rate": sampling_rate},
         generate_kwargs={"task": "transcribe"},  # Force transcription mode
     )
 
