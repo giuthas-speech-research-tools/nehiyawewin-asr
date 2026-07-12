@@ -3,10 +3,7 @@ from pathlib import Path
 
 import torch
 import torchaudio
-from transformers import (
-    WhisperForConditionalGeneration,
-    WhisperProcessor,
-)
+from transformers import WhisperForConditionalGeneration, WhisperProcessor
 
 
 def transcribe_audio(model_dir: str, audio_path: str) -> str:
@@ -63,20 +60,23 @@ def transcribe_audio(model_dir: str, audio_path: str) -> str:
             prediction_ids = model.generate(
                 input_features,
                 max_length=225,
-                # explicitly passing the start token ensures generation
-                # doesn't default to EOS and immediately halt.
-                decoder_start_token_id=processor.tokenizer.bos_token_id,
+                # Without this, generation defaults to 50257 (EOS) and halts
+                # instantly.
+                decoder_start_token_id=50258,
             )
 
+        # Extract tokens for this chunk
         raw_tokens = prediction_ids[0].tolist()
 
-        # Filter out special tokens manually to bypass the tokenizer bug.
-        # Whisper text tokens are strictly less than 50257.
+        # Filter out special tokens manually to bypass the
+        # skip_special_tokens=True bug Whisper text tokens are strictly less
+        # than 50257
         text_tokens = []
         for token in raw_tokens:
             if token < 50257:
                 text_tokens.append(token)
 
+        # Decode only the pure text content tokens
         clean_text = processor.tokenizer.decode(text_tokens)
 
         if clean_text.strip():
@@ -105,23 +105,24 @@ if __name__ == "__main__":
     args = parser.parse_args()
     input_path = Path(args.audio_path)
 
+    # Define the broader set of supported audio extensions
     supported_extensions = {".wav", ".m4a", ".mp3", ".flac", ".ogg"}
 
     if input_path.is_file():
         audio_files = [input_path]
     elif input_path.is_dir():
         audio_files = []
-        for file_item in input_path.rglob("*"):
-            if file_item.suffix.lower() in supported_extensions:
-                audio_files.append(file_item)
+        for f in input_path.rglob("*"):
+            if f.suffix.lower() in supported_extensions:
+                audio_files.append(f)
     else:
         raise ValueError(f"Invalid path provided: {input_path}")
 
-    for target_file in audio_files:
+    for file_path in audio_files:
         text = transcribe_audio(
             model_dir=args.model_dir,
-            audio_path=str(target_file),
+            audio_path=str(file_path),
         )
 
-        print(f"\n--- Transcription for {target_file.name} ---")
+        print(f"\n--- Transcription for {file_path.name} ---")
         print(text)
