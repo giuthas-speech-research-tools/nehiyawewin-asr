@@ -58,10 +58,11 @@ def transcribe_audio(model_dir: str, audio_path: str) -> str:
         inputs={"array": audio_array, "sampling_rate": sampling_rate},
         return_timestamps=False,  # Bypasses the broken chunk-stitching logic
         generate_kwargs={
+            "language": None,
             "task": "transcribe",
-            # First round of trainings didn't specify language so it defaulted
-            # to English.
-            "language": "en",
+            "forced_decoder_ids": None,
+            "suppress_tokens": None,
+            "max_length": 225,
         },
     )
 
