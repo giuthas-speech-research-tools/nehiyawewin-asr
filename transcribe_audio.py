@@ -3,69 +3,59 @@ from pathlib import Path
 
 import torch
 import torchaudio
-from transformers import pipeline
+from transformers import WhisperForConditionalGeneration, WhisperProcessor
 
 
 def transcribe_audio(model_dir: str, audio_path: str) -> str:
-    """
-    Transcribe an audio file using a local Hugging Face ASR model.
-    """
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    if torch.cuda.is_available():
+        device = "cuda:0"
+    else:
+        device = "cpu"
+
     if torch.cuda.is_available():
         compute_dtype = torch.float16
     else:
         compute_dtype = torch.float32
 
     print(f"Loading model from {model_dir}...")
+    model = WhisperForConditionalGeneration.from_pretrained(
+        model_dir, torch_dtype=compute_dtype).to(device)
+    processor = WhisperProcessor.from_pretrained(model_dir)
 
-    # Initialize the automatic-speech-recognition pipeline
-    transcriber = pipeline(
-        task="automatic-speech-recognition",
-        model=model_dir,
-        tokenizer=model_dir,
-        feature_extractor=model_dir,
-        device=device,
-        dtype=compute_dtype,
-        model_kwargs={"use_cache": True},  # Re-enables fast inference
-        chunk_length_s=30,  # For transcribing files longer than 30 seconds
-    )
+    # Mirror your training script generation config
+    model.generation_config.language = None
+    model.generation_config.task = "transcribe"
+    model.generation_config.forced_decoder_ids = None
+    model.generation_config.suppress_tokens = None
 
     print(f"Transcribing {audio_path}...")
-
-    # Load with torchaudio to bypass Hugging Face's file streaming bug
     waveform, sampling_rate = torchaudio.load(audio_path)
-
-    # Convert to mono if the recording is stereo
     if waveform.shape[0] > 1:
         waveform = waveform.mean(dim=0, keepdim=True)
-
-    # Whisper requires 16kHz. If the pipeline fails to resample 44.1kHz
-    # audio internally, the model receives noise and outputs nothing.
     if sampling_rate != 16000:
-        print(f"Resampling from {sampling_rate} Hz to 16000 Hz.")
         waveform = torchaudio.functional.resample(
-            waveform, orig_freq=sampling_rate, new_freq=16000
-        )
-        sampling_rate = 16000
+            waveform, orig_freq=sampling_rate, new_freq=16000)
 
     audio_array = waveform.squeeze().numpy()
+    chunk_len = 16000 * 30
+    results = []
 
-    # Run the raw audio array through the model
-    result = transcriber(
-        inputs={"array": audio_array, "sampling_rate": sampling_rate},
-        return_timestamps=False,  # Bypasses the broken chunk-stitching logic
-        # generate_kwargs={
-        #     "language": None,
-        #     "task": "transcribe",
-        #     "forced_decoder_ids": None,
-        #     "suppress_tokens": None,
-        #     "max_length": 225,
-        # },
-    )
+    for start in range(0, len(audio_array), chunk_len):
+        chunk = audio_array[start: start + chunk_len]
+        input_features = processor(
+            chunk,
+            sampling_rate=16000,
+            return_tensors="pt"
+        ).input_features.to(device, dtype=compute_dtype)
 
-    print(result)
+        with torch.no_grad():
+            prediction_ids = model.generate(input_features, max_length=225)
 
-    return result["text"]
+        results.append(processor.tokenizer.batch_decode(
+            prediction_ids, skip_special_tokens=True)[0])
+
+    print(results)
+    return " ".join(results)
 
 
 if __name__ == "__main__":
