@@ -18,11 +18,17 @@ def transcribe_audio(model_dir: str, audio_path: str) -> str:
     ).to(device)
     processor = WhisperProcessor.from_pretrained(model_dir)
 
-    # Mirror your training script generation config
+    # EXACTLY mirror your training script overrides.
+    # We must also clear model.config to fix the logits processor warning
+    # that silently swallows valid token generation.
+    model.config.suppress_tokens = None
+    model.generation_config.suppress_tokens = None
+    model.generation_config.language = None
+    model.generation_config.task = "transcribe"
+    model.generation_config.forced_decoder_ids = None
     model.generation_config.pad_token_id = (
         processor.tokenizer.pad_token_id
     )
-    model.generation_config.suppress_tokens = None
 
     print(f"Transcribing {audio_path}...")
     waveform, sampling_rate = torchaudio.load(audio_path)
@@ -52,30 +58,11 @@ def transcribe_audio(model_dir: str, audio_path: str) -> str:
         )
         input_features = processed.input_features.to(device)
 
-        # Bypass the Hugging Face tokenizers bug by manually constructing
-        # the forced tokens list for index 1, 2, and 3.
-        lang_id = processor.tokenizer.convert_tokens_to_ids("<|en|>")
-        task_id = processor.tokenizer.convert_tokens_to_ids("<|transcribe|>")
-        no_time_id = processor.tokenizer.convert_tokens_to_ids(
-            "<|notimestamps|>")
-
-        forced_decoder_ids = [
-            (1, lang_id),
-            (2, task_id),
-            (3, no_time_id)
-        ]
-
         with torch.no_grad():
             prediction_ids = model.generate(
                 input_features,
                 max_length=225,
-                forced_decoder_ids=forced_decoder_ids
             )
-
-        raw_tokens = processor.tokenizer.batch_decode(
-            prediction_ids,
-            skip_special_tokens=False
-        )[0]
 
         clean_text = processor.tokenizer.batch_decode(
             prediction_ids,
@@ -83,7 +70,10 @@ def transcribe_audio(model_dir: str, audio_path: str) -> str:
         )[0]
 
         if not clean_text.strip():
-            print(f"  [DEBUG] Raw generated tokens: {raw_tokens}")
+            print(
+                "  [DEBUG] Raw token IDs output by model: "
+                f"{prediction_ids.tolist()}"
+            )
 
         if clean_text.strip():
             results.append(clean_text.strip())
