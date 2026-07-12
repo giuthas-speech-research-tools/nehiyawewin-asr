@@ -139,9 +139,9 @@ def plot_trainer_state(
             best_eval_loss = eval_row['eval_loss'].values[0]
             # Keep arrow annotation for Loss only
             ax1.annotate(
-                f"Best: {run_name}",
+                "Best",
                 xy=(best_step, best_eval_loss),
-                xytext=(10, 10),
+                xytext=(30, 30),
                 textcoords="offset points",
                 arrowprops=dict(arrowstyle="->", color=model_color),
                 color=model_color,
@@ -250,7 +250,9 @@ def process_directories(base_dir: str) -> None:
             ax.set_xlabel('Steps')
 
         ax.set_ylabel('Loss')
-        ax.legend(fontsize='small')
+        ax.legend(
+            # fontsize='small'
+        )
         ax.grid(True, linestyle='--', alpha=0.6)
         ax.set_ylim((-.25, 3.25))
 
@@ -259,7 +261,10 @@ def process_directories(base_dir: str) -> None:
     ax2.set_ylabel('Percentage (%)')
 
     # Primary WER legend
-    leg_wer = ax2.legend(fontsize='small', loc='upper center')
+    leg_wer = ax2.legend(
+        # fontsize='small',
+        loc='upper center'
+    )
     ax2.add_artist(leg_wer)  # Add back so the second legend doesn't wipe it
 
     # Custom "Legend-like Card" for Model Training Times
@@ -269,7 +274,7 @@ def process_directories(base_dir: str) -> None:
     ]
     ax2.legend(
         handles=time_handles,
-        fontsize='small',
+        # fontsize='small',
         title='Training times',
         loc='upper right'
     )
@@ -278,7 +283,9 @@ def process_directories(base_dir: str) -> None:
     ax3.set_title('CER Development')
     ax3.set_xlabel('Steps')
     ax3.set_ylabel('Percentage (%)')
-    ax3.legend(fontsize='small')
+    ax3.legend(
+        # fontsize='small'
+    )
     ax3.grid(True, linestyle='--', alpha=0.6)
     ax3.set_ylim((5, 45))
 
