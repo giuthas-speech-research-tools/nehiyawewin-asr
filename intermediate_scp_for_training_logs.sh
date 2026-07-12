@@ -11,11 +11,9 @@ scp altlab-gpu:whisper-test/hf_cache/whisper-large-finetuned/all_results.json la
 scp altlab-gpu:whisper-test/hf_cache/whisper-small-finetuned/train_results.json small/
 
 # Get the test results at the end of each training.
-scp altlab-gpu:whisper-test/hf_cache/whisper-tiny-finetuned/test_results.tsv tiny/
-scp altlab-gpu:whisper-test/hf_cache/whisper-base-finetuned/test_results.tsv base/
-scp altlab-gpu:whisper-test/hf_cache/whisper-small-finetuned/test_results.tsv small/
-scp altlab-gpu:whisper-test/hf_cache/whisper-medium-finetuned/test_results.tsv medium/
-scp altlab-gpu:whisper-test/hf_cache/whisper-large-finetuned/test_results.tsv large/
+for size in tiny base small medium large; 
+do scp altlab-gpu:whisper-test/hf_cache/whisper-$size-finetuned/test_results.tsv $size/; 
+done
 
 # and to get these to the local system run
 scp -r juhapert@134.87.11.120:test_results/* .

@@ -140,7 +140,7 @@ def main() -> None:
         seed=config.random_seed
     )
 
-    print("Initializing feature extractor, tokenizer, and processor...")
+    print("Initializing feature extractor, tokenizer, and processor.")
     feature_extractor = WhisperFeatureExtractor.from_pretrained(
         pretrained_model_name_or_path=config.base_model_id
     )
@@ -185,7 +185,11 @@ def main() -> None:
 
         return batch
 
-    print(f"Applying mapping via {config.num_processors} CPU threads...")
+    # Stash the unmapped test dataset so we don't lose the string file paths
+    # and reference sentences when the map function drops the original columns.
+    raw_test_dataset = dataset["test"]
+
+    print(f"Applying mapping via {config.num_processors} CPU threads.")
     dataset = dataset.map(
         function=prepare_dataset,
         remove_columns=dataset.column_names["train"],
@@ -236,7 +240,7 @@ def main() -> None:
 
         return {"wer": wer_score, "cer": cer_score}
 
-    print("Loading Model Weights...")
+    print("Loading Model Weights.")
     model = WhisperForConditionalGeneration.from_pretrained(
         pretrained_model_name_or_path=config.base_model_id
     )
@@ -253,7 +257,7 @@ def main() -> None:
     # from double-instantiating the logits processor during generation.
     model.generation_config.suppress_tokens = None
 
-    print("Assembling Training Arguments...")
+    print("Assembling Training Arguments.")
     training_args = Seq2SeqTrainingArguments(
         output_dir=config.output_dir,
         per_device_train_batch_size=config.train_batch_size,
@@ -290,7 +294,7 @@ def main() -> None:
         callbacks=[EarlyStoppingCallback(early_stopping_patience=3)],
     )
 
-    print("Commencing Seq2Seq Training...")
+    print("Commencing Seq2Seq Training.")
     train_result = trainer.train()
 
     print(
@@ -300,7 +304,7 @@ def main() -> None:
     trainer.save_model(output_dir=config.final_model_dir)
     processor.save_pretrained(save_directory=config.final_model_dir)
 
-    print("Exporting training statistics and loss development...")
+    print("Exporting training statistics and loss development.")
     trainer.save_metrics("train", train_result.metrics)
     trainer.save_state()
 
@@ -326,6 +330,35 @@ def main() -> None:
             writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(trainer.state.log_history)
+
+    print("Generating final predictions on the test set for test_results.tsv.")
+    predict_results = trainer.predict(dataset["test"])
+
+    prediction_ids = predict_results.predictions
+    prediction_ids[prediction_ids == -100] = tokenizer.pad_token_id
+
+    predictions_str = tokenizer.batch_decode(
+        prediction_ids,
+        skip_special_tokens=True
+    )
+
+    # Extract audio paths and references from the unmodified test split
+    audio_paths = [
+        audio_item.get("path", "unknown")
+        for audio_item in raw_test_dataset["audio"]
+    ]
+    references_str = raw_test_dataset["sentence"]
+
+    results_path = os.path.join(config.final_model_dir, "test_results.tsv")
+    with open(results_path, "w", newline="", encoding="utf-8") as tsv_file:
+        writer = csv.writer(tsv_file, delimiter="\t")
+        writer.writerow(["audio_path", "reference_sro", "predicted_sro"])
+        for path, ref, pred in zip(
+            audio_paths, references_str, predictions_str
+        ):
+            writer.writerow([path, ref, pred])
+
+        print(f"Test results successfully exported to {results_path}")
 
 
 if __name__ == "__main__":
