@@ -6,6 +6,7 @@ from config import config
 from datasets import load_dataset, Audio, Features, Value
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
 
+
 def main() -> None:
     # 1. Re-create the exact same dataset split used during training
     print("Loading test dataset splits...")
@@ -13,14 +14,14 @@ def main() -> None:
         "audio": Audio(sampling_rate=config.sampling_rate),
         "sentence": Value("string")
     })
-    
+
     dataset_full = load_dataset(
         path="csv",
         data_files=config.metadata_csv,
         split="train",
         features=features
     )
-    
+
     dataset = dataset_full.train_test_split(
         test_size=config.test_size,
         seed=config.random_seed
@@ -30,16 +31,21 @@ def main() -> None:
     # 2. Load the trained model and processor
     model_path = config.final_model_dir
     print(f"Loading model weights from {model_path}...")
-    
-    device = "cuda" if torch.cuda.is_available() and not getattr(config, "use_cpu", False) else "cpu"
+
+    if torch.cuda.is_available() and not config.use_cpu:
+        device = "cuda"
+    else:
+        device = "cpu"
+
     processor = WhisperProcessor.from_pretrained(model_path)
-    model = WhisperForConditionalGeneration.from_pretrained(model_path).to(device)
+    model = WhisperForConditionalGeneration.from_pretrained(
+        model_path).to(device)
     model.eval()
 
     # 3. Run inference on the test split
     print("Running inference on the test set...")
     results = []
-    
+
     for item in tqdm(test_dataset, desc="Transcribing"):
         audio = item["audio"]
         reference = item["sentence"]
@@ -48,17 +54,18 @@ def main() -> None:
 
         # Process the raw audio array
         inputs = processor(
-            audio["array"], 
-            sampling_rate=audio["sampling_rate"], 
+            audio["array"],
+            sampling_rate=audio["sampling_rate"],
             return_tensors="pt"
         ).input_features.to(device)
 
         # Generate prediction
         with torch.no_grad():
             predicted_ids = model.generate(inputs, max_length=225)
-        
+
         # Decode output
-        prediction = processor.batch_decode(predicted_ids, skip_special_tokens=True)[0]
+        prediction = processor.batch_decode(
+            predicted_ids, skip_special_tokens=True)[0]
         results.append([audio_path, reference, prediction])
 
     # 4. Save to TSV
@@ -69,6 +76,7 @@ def main() -> None:
         writer.writerows(results)
 
     print(f"Test results successfully exported to {output_file}")
+
 
 if __name__ == "__main__":
     main()
