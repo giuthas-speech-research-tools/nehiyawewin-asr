@@ -42,6 +42,14 @@ def transcribe_audio(model_dir: str, audio_path: str) -> str:
     if waveform.shape[0] > 1:
         waveform = waveform.mean(dim=0, keepdim=True)
 
+    # Whisper requires 16kHz. If the pipeline fails to resample 44.1kHz
+    # audio internally, the model receives noise and outputs nothing.
+    if sampling_rate != 16000:
+        waveform = torchaudio.functional.resample(
+            waveform, orig_freq=sampling_rate, new_freq=16000
+        )
+        sampling_rate = 16000
+
     audio_array = waveform.squeeze().numpy()
 
     # Run the raw audio array through the model
