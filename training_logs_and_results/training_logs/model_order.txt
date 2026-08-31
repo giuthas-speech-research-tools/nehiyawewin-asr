@@ -1,0 +1,5 @@
+tiny	14.5m
+base	12.9m
+small	00:12:51
+medium	33.0m
+large
