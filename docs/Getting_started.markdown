@@ -2,10 +2,21 @@
 
 To use the nehiyawewin-asr scripts you will need a couple of basic command line
 tools: `git` and `uv`. `Git` is used for version control and for cloning the
-repository (that is where the code is kept) and `uv` is used for setting up the Python environment and running the scripts. 
+repository (that is where the code is kept) and `uv` is used for setting up the
+Python environment and running the scripts. 
+
+In principle, if you are not going to modify the scripts, you could skip
+installing `uv`, but in practice using standard tools like Python's `venv` will
+be slower and potentially more error prone. The instructions below will
+occasionally give instructions for how to use tools other than `uv`, but those
+are untested and not recommended. They are only provided in case somebody needs
+a starting point for setting up a system where `uv` is not an option for some
+reason.
 
 If you would like to or need to modify the scripts, you should also get a IDE
-such as VSCodium.
+such as VSCodium or whatever is your favourite Python development environment.
+Going this route will be referred to as 'installing for development' or similar
+in the rest of the documentation.
 
 Git also has various GUI implementations, but those are operating system
 dependent and so you will have to look them up and select the one you would
@@ -16,20 +27,63 @@ Here are some potentially useful links to these tools:
 - [Getting `git`](https://git-scm.com/install/)
 - [Getting `uv`](https://docs.astral.sh/uv/getting-started/installation/)
 - [Getting VSCodium](https://vscodium.com/)
+- [Getting Python](https://python.org)
+
+In addition to the above, you should also create a
+[github](https://github.com/) account and do any setup you need to do on your
+local system to be able to clone repositories from github such as setting
+access tokens and so on.
 
 
-## 1. Clone and Setup Environment
+## 1. Clone the repository
 
-First, clone the repository and set up your Python environment. You can use
-standard `venv` or a faster manager like `uv`.
+First, clone the repository (two times: on github and then to your local
+system) and set up your Python environment. You can specify a folder to clone
+to as after the github url. If you cloned the repository on github, use the url
+of your github clone rather than the main repository. Latter is the better way
+of working.
 
 ```bash
-# Clone the repository
-git clone https://github.com/giuthas-speech-research-tools/whisper-test
-cd whisper-test
+git clone https://github.com/giuthas-speech-research-tools/nehiyawewin-asr/
+cd nehiyawewin-asr
 ```
 
-### Using pip:
+## Setup the Python environment
+
+### Install Python [if not using `uv`]
+
+If you are not using `uv`, you will need to install Python. How to get this
+done is again dependent on your system. See [python.org](https://python.org)
+to get started.
+
+### Setup the Python package environment
+
+You can use standard `venv` or a faster manager like `uv`. Latter is
+recommended.
+
+#### Using uv:
+
+Within the `nehiyawewin-asr` directory run
+
+```
+uv tool install .
+```
+
+This will setup the necessary Python virtual package environment and install
+most of the scripts in nehiyawewin-asr as commandline tools. This means that
+they can be run with simply the names given in the documentation as if they
+were regular commandline tools like `git`. 
+
+##### Installing for development
+
+If you are installing/setting up for development, you may not want to install
+the nehiyawewin-asr scripts as commandline tools. If this is the case, after
+installing `uv`, your IDE, and cloning the repository locally, you are done
+with setup. Just remember to replace all script calls with `uv run
+[path-to-script-file] [and-arguments-to-script]` in the running instructions.
+
+
+#### Using pip:
 ```bash
 # Create and activate a virtual environment
 python -m venv .venv
@@ -39,11 +93,6 @@ source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
 pip install torch transformers datasets evaluate pandas pyyaml
 
 ```
-
-### Using uv:
-
-No need to do anything here. Just replace all `python` calls with `uv run python` in the next steps.
-
 
 ## Prepare Data and Offline Assets
 
