@@ -1,5 +1,23 @@
 # Getting Started
 
+To use the nehiyawewin-asr scripts you will need a couple of basic command line
+tools: `git` and `uv`. `Git` is used for version control and for cloning the
+repository (that is where the code is kept) and `uv` is used for setting up the Python environment and running the scripts. 
+
+If you would like to or need to modify the scripts, you should also get a IDE
+such as VSCodium.
+
+Git also has various GUI implementations, but those are operating system
+dependent and so you will have to look them up and select the one you would
+like yourself. Git can be used from just the commandline without problems
+though.
+
+Here are some potentially useful links to these tools:
+- [Getting `git`](https://git-scm.com/install/)
+- [Getting `uv`](https://docs.astral.sh/uv/getting-started/installation/)
+- [Getting VSCodium](https://vscodium.com/)
+
+
 ## 1. Clone and Setup Environment
 
 First, clone the repository and set up your Python environment. You can use
