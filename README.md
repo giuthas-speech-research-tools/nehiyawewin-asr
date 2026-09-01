@@ -2,7 +2,9 @@
 
 This repository contains scripts for fine-tuning Hugging Face's Whisper models
 on local speech data that we have used in training nêhiyawêwin / Plains Cree
-ASR models. The pipeline is configured via YAML profiles to transition between
+ASR models. It **does not** contain the trained models nor the training data. 
+
+The pipeline is configured via YAML profiles to transition between
 local desktop testing (CPU) and high-performance computing (HPC) environments
 like Digital Alliance's Narval (A100 GPUs).
 
