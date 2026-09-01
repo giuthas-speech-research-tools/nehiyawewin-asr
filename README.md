@@ -18,3 +18,10 @@ Documentation:
 At time of writing (31st August 2026), all documentation is preliminary as it
 has only had one set of human eys on it so far. This should change within a
 couple of months.
+
+## Package name
+
+The package is properly called nêhiyawêwin-asr, but you should use the
+ASCII-only (linguistically incorrect) spelling of `nehiyawewin-asr` in code and
+on the commandline as computers are not always that good with matching
+diacritics between systems and this can lead to broken functionality.

@@ -82,6 +82,22 @@ installing `uv`, your IDE, and cloning the repository locally, you are done
 with setup. Just remember to replace all script calls with `uv run
 [path-to-script-file] [and-arguments-to-script]` in the running instructions.
 
+If you do install the scripts as tools with `uv tool install .` you will
+probably have to uninstall them and then reinstall them after any updates to
+the code. It maybe more convenient to just run them with
+
+```
+uv run python [path-to-script-file] [and-arguments-to-script]
+```
+while making changes and only do the uninstall-reinstall dance when done with
+editing. To uninstall the scripts run
+
+```
+uv tool uninstall nehiyawewin-asr
+```
+instead of using `.` to refer to the current directory. A bit unsymmetric, but
+this is how `uv` works.
+
 
 #### Using pip:
 ```bash
