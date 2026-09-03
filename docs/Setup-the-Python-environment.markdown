@@ -60,3 +60,5 @@ pip install torch transformers datasets evaluate pandas pyyaml
 
 ```
 
+---
+Next: [Prepare the Data](Prepare-the-data.markdown)

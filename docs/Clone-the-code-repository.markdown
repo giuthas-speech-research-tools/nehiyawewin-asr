@@ -11,4 +11,5 @@ git clone https://github.com/giuthas-speech-research-tools/nehiyawewin-asr/
 cd nehiyawewin-asr
 ```
 
-Next: [Setup the Python Environment](Setup-the-Python-environment)
+---
+Next: [Setup the Python Environment](Setup-the-Python-environment.markdown)
