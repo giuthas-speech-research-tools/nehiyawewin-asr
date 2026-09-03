@@ -9,7 +9,7 @@ local desktop testing (CPU) and high-performance computing (HPC) environments
 like Digital Alliance's Narval (A100 GPUs).
 
 Documentation:
-- [Getting started](docs/Getting_started.markdown)
+- [Usage guide](docs/Usage_guide.markdown)
 - [How to run a training on the altlab-gpu server](docs/altlab-gpu-training-run.markdown)
 - Future plans:
   - [Training with code switching data](docs/Code-switching-training.markdown) 

@@ -1,4 +1,4 @@
-# Getting Started
+# Usage guide
 
 To use the nehiyawewin-asr scripts you will need a couple of basic command line
 tools: `git` and `uv`. `Git` is used for version control and for cloning the
@@ -34,12 +34,21 @@ In addition to the above, you should also create a
 local system to be able to clone repositories from github such as setting
 access tokens and so on.
 
-Getting everything in place to train ASR models or run them, takes a few steps. These are explained in the following files:
+Getting everything in place to train ASR models or run them, takes a few steps.
+These are explained below.
+
+## Installations
 
 - [Clone the code repository](Clone-the-code-repository.markdown)
 - [Setup the Python environment](Setup-the-Python-environment.markdown)
+
+## Data preparation
+
 - [Prepare the Data](Prepare-the-data.markdown)
 - [Upload files to HPC](Upload-files-to-HPC.markdown)
+
+## Running trainings and checking the results
+
 - [Run the training](Run-the-training.markdown)
 - [Analyse the results](Analyse-the-results.markdown)
 
