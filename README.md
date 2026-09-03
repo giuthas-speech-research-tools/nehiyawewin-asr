@@ -4,11 +4,10 @@ This repository contains scripts for fine-tuning Hugging Face's Whisper models
 on local speech data that we have used in training nêhiyawêwin / Plains Cree
 ASR models. It **does not** contain the trained models nor the training data. 
 
-The pipeline is configured via YAML profiles to transition between
-local desktop testing (CPU) and high-performance computing (HPC) environments
-like Digital Alliance's Narval (A100 GPUs).
+The pipeline is configured via YAML profiles to transition between local
+desktop testing (CPU) and high-performance computing (HPC) environments.
 
-Documentation:
+[Documentation](https://giuthas-speech-research-tools.github.io/nehiyawewin-asr/):
 - [Usage guide](docs/Usage_guide.markdown)
 - [How to run a training on the altlab-gpu server](docs/altlab-gpu-training-run.markdown)
 - Future plans:
@@ -16,7 +15,7 @@ Documentation:
   - [Integrating a Finite State Transducer to Whisper](docs/FST-integration.markdown)
 
 At time of writing (31st August 2026), all documentation is preliminary as it
-has only had one set of human eys on it so far. This should change within a
+has only had one set of human eyes on it so far. This should change within a
 couple of months.
 
 ## Package name
