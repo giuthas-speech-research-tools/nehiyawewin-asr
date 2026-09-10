@@ -37,7 +37,7 @@ access tokens and so on.
 Getting everything in place to train ASR models or run them, takes a few steps.
 These are explained below.
 
-## Installations
+## Praparing the environment
 
 - [Clone the code repository](Clone-the-code-repository.markdown)
 - [Setup the Python environment](Setup-the-Python-environment.markdown)

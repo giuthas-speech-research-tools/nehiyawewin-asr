@@ -2,14 +2,14 @@
 
 ## Install Python [if not using `uv`]
 
-If you are not using `uv`, you will need to install Python. How to get this
-done is again dependent on your system. See [python.org](https://python.org)
-to get started.
+If you are not using `uv` and do not yet have a working Python installation,
+you will need to install it. How to get this done is dependent on your system.
+See [python.org](https://python.org) to get started.
 
 ## Setup the Python package environment
 
-You can use standard `venv` or a faster manager like `uv`. Latter is
-recommended.
+You can use the standard combination of `venv` and `pip`, or a faster package
+manager like `uv`. Latter is recommended.
 
 ### Using uv:
 
@@ -18,6 +18,8 @@ Within the `nehiyawewin-asr` directory run
 ```
 uv tool install .
 ```
+
+The `.` at the end of the command matters.
 
 This will setup the necessary Python virtual package environment and install
 most of the scripts in nehiyawewin-asr as commandline tools. This means that
