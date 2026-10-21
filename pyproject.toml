@@ -21,6 +21,19 @@ dependencies = [
     "transformers>=5.5.0",
 ]
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/nehiyawewin_asr"]
+
+[tool.hatch.build.targets.sdist]
+packages = ["src/nehiyawewin_asr"]
+
+[project.scripts]
+error-analysis = "nehiyawewin_asr:analyse_errors"
+
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"

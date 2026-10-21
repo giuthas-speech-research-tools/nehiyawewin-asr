@@ -1,0 +1,1 @@
+from nehiyawewin_asr.analyse_whisper_errors import analyse_errors
