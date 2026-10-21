@@ -6,6 +6,7 @@ Features:
 - Flags transcriptions with >10% Character Error Rate (CER).
 - Exports detailed word and character error examples.
 - Exports complete frequency tables to CSV and LaTeX.
+- Exports confusion matrices for character substitutions.
 - Console output filters out single-occurrence anomalies.
 """
 
@@ -56,7 +57,7 @@ def load_tsv_data(file_path: str) -> List[Dict[str, str]]:
     return data
 
 
-def tokenize_phonetics(text: str) -> List[str]:
+def tokenize_phonetics(text: str, normalize_h: bool = True) -> List[str]:
     """
     Tokenize string into characters, grouping Algonquian digraphs.
 
@@ -67,6 +68,9 @@ def tokenize_phonetics(text: str) -> List[str]:
     ----------
     text : str
         The input text to tokenize.
+    normalize_h : bool
+        If True, normalize h-digraphs (ah, eh, ih, oh, uh) to their
+        circumflex equivalents.
 
     Returns
     -------
@@ -75,21 +79,25 @@ def tokenize_phonetics(text: str) -> List[str]:
     """
     replacements = [
         # a variants
-        ("aa", "â"), ("ah", "â"), ("aA", "â"), ("aH", "â"),
-        ("Aa", "Â"), ("Ah", "Â"), ("AA", "Â"), ("AH", "Â"),
+        ("aa", "â"), ("aA", "â"), ("Aa", "Â"), ("AA", "Â"),
         # e variants
-        ("ee", "ê"), ("eh", "ê"), ("eE", "ê"), ("eH", "ê"),
-        ("Ee", "Ê"), ("Eh", "Ê"), ("EE", "Ê"), ("EH", "Ê"),
+        ("ee", "ê"), ("eE", "ê"), ("Ee", "Ê"), ("EE", "Ê"),
         # i variants
-        ("ii", "î"), ("ih", "î"), ("iI", "î"), ("iH", "î"),
-        ("Ii", "Î"), ("Ih", "Î"), ("II", "Î"), ("IH", "Î"),
+        ("ii", "î"), ("iI", "î"), ("Ii", "Î"), ("II", "Î"),
         # o variants
-        ("oo", "ô"), ("oh", "ô"), ("oO", "ô"), ("oH", "ô"),
-        ("Oo", "Ô"), ("Oh", "Ô"), ("OO", "Ô"), ("OH", "Ô"),
+        ("oo", "ô"), ("oO", "ô"), ("Oo", "Ô"), ("OO", "Ô"),
         # u variants
-        ("uu", "û"), ("uh", "û"), ("uU", "û"), ("uH", "û"),
-        ("Uu", "Û"), ("Uh", "Û"), ("UU", "Û"), ("UH", "Û"),
+        ("uu", "û"), ("uU", "û"), ("Uu", "Û"), ("UU", "Û"),
     ]
+
+    if normalize_h:
+        replacements.extend([
+            ("ah", "â"), ("aH", "â"), ("Ah", "Â"), ("AH", "Â"),
+            ("eh", "ê"), ("eH", "ê"), ("Eh", "Ê"), ("EH", "Ê"),
+            ("ih", "î"), ("iH", "î"), ("Ih", "Î"), ("IH", "Î"),
+            ("oh", "ô"), ("oH", "ô"), ("Oh", "Ô"), ("OH", "Ô"),
+            ("uh", "û"), ("uH", "û"), ("Uh", "Û"), ("UH", "Û"),
+        ])
 
     for old, new in replacements:
         text = text.replace(old, new)
@@ -140,7 +148,11 @@ def tex_escape(text: str) -> str:
 
 
 def extract_character_errors(
-    ref: str, hyp: str, audio_path: str, high_error_flag: str
+    ref: str,
+    hyp: str,
+    audio_path: str,
+    high_error_flag: str,
+    normalize_h: bool = True,
 ) -> Tuple[Dict[str, int], List[List[str]], Dict[str, Counter]]:
     """
     Analyze ASR errors at a granular token/character level.
@@ -155,6 +167,8 @@ def extract_character_errors(
         The path to the audio file.
     high_error_flag : str
         "Yes" if CER > 10%, "No" otherwise.
+    normalize_h : bool
+        Whether to normalize h-digraphs to circumflex forms.
 
     Returns
     -------
@@ -165,11 +179,11 @@ def extract_character_errors(
     freqs = {"substitute": Counter(), "insert": Counter(), "delete": Counter()}
     examples = []
 
-    ref_toks = tokenize_phonetics(ref)
-    hyp_toks = tokenize_phonetics(hyp)
+    ref_tokens = tokenize_phonetics(ref, normalize_h)
+    hyp_tokens = tokenize_phonetics(hyp, normalize_h)
 
-    ref_str = " ".join(ref_toks)
-    hyp_str = " ".join(hyp_toks)
+    ref_str = " ".join(ref_tokens)
+    hyp_str = " ".join(hyp_tokens)
 
     result = jiwer.process_words(ref_str, hyp_str)
 
@@ -180,8 +194,8 @@ def extract_character_errors(
         r_start, r_end = alignment.ref_start_idx, alignment.ref_end_idx
         h_start, h_end = alignment.hyp_start_idx, alignment.hyp_end_idx
 
-        ref_chunk = ref_toks[r_start:r_end]
-        hyp_chunk = hyp_toks[h_start:h_end]
+        ref_chunk = ref_tokens[r_start:r_end]
+        hyp_chunk = hyp_tokens[h_start:h_end]
 
         if alignment.type == "substitute":
             r_sub = "".join(ref_chunk)
@@ -215,7 +229,11 @@ def extract_character_errors(
 
 
 def extract_word_errors(
-    ref: str, hyp: str, audio_path: str, high_error_flag: str
+    ref: str,
+    hyp: str,
+    audio_path: str,
+    high_error_flag: str,
+    normalize_h: bool = True,
 ) -> Tuple[Dict[str, int], List[List[str]]]:
     """
     Analyze ASR errors at the word level.
@@ -230,6 +248,8 @@ def extract_word_errors(
         The path to the audio file.
     high_error_flag : str
         "Yes" if CER > 10%, "No" otherwise.
+    normalize_h : bool
+        Whether to normalize h-digraphs to circumflex forms.
 
     Returns
     -------
@@ -257,8 +277,8 @@ def extract_word_errors(
 
         char_error_types: Set[str] = set()
         if alignment.type == "substitute":
-            r_str = " ".join(tokenize_phonetics(ref_err))
-            h_str = " ".join(tokenize_phonetics(hyp_err))
+            r_str = " ".join(tokenize_phonetics(ref_err, normalize_h))
+            h_str = " ".join(tokenize_phonetics(hyp_err, normalize_h))
             char_res = jiwer.process_words(r_str, h_str)
             for c_align in char_res.alignments[0]:
                 if c_align.type != "equal":
@@ -288,7 +308,7 @@ def extract_word_errors(
 
 
 def analyze_all_errors(
-    data: List[Dict[str, str]]
+    data: List[Dict[str, str]], normalize_h: bool = True
 ) -> Tuple[Dict, List, Dict, List, Dict]:
     """
     Process all transcription records and aggregate errors.
@@ -297,6 +317,8 @@ def analyze_all_errors(
     ----------
     data : List[Dict[str, str]]
         The list of dictionaries containing ASR transcriptions.
+    normalize_h : bool
+        Whether to normalize h-digraphs to circumflex forms.
 
     Returns
     -------
@@ -322,20 +344,20 @@ def analyze_all_errors(
         if not ref and not hyp:
             continue
 
-        ref_toks = tokenize_phonetics(ref)
-        hyp_toks = tokenize_phonetics(hyp)
-        ref_str = " ".join(ref_toks)
-        hyp_str = " ".join(hyp_toks)
+        ref_tokens = tokenize_phonetics(ref, normalize_h)
+        hyp_tokens = tokenize_phonetics(hyp, normalize_h)
+        ref_str = " ".join(ref_tokens)
+        hyp_str = " ".join(hyp_tokens)
         cer_result = jiwer.process_words(ref_str, hyp_str)
 
         cer = (
-            cer_result.wer if len(ref_toks) > 0
-            else (1.0 if len(hyp_toks) > 0 else 0.0)
+            cer_result.wer if len(ref_tokens) > 0
+            else (1.0 if len(hyp_tokens) > 0 else 0.0)
         )
         high_error_flag = "Yes" if cer > 0.10 else "No"
 
         c_counts, c_rows, c_row_freqs = extract_character_errors(
-            ref, hyp, audio_path, high_error_flag
+            ref, hyp, audio_path, high_error_flag, normalize_h
         )
         for k, v in c_counts.items():
             c_tally[k] += v
@@ -344,7 +366,7 @@ def analyze_all_errors(
         c_examples.extend(c_rows)
 
         w_counts, w_rows = extract_word_errors(
-            ref, hyp, audio_path, high_error_flag
+            ref, hyp, audio_path, high_error_flag, normalize_h
         )
         for k, v in w_counts.items():
             w_tally[k] += v
@@ -402,6 +424,53 @@ def export_frequencies_to_csv(
 
         for r_char, count in freqs["delete"].most_common():
             writer.writerow(["Deletion", r_char, "", count])
+
+
+def export_confusion_matrix_to_csv(
+    freqs: Dict[str, Counter], output_path: str, single_char_only: bool = False
+) -> None:
+    """
+    Export a confusion matrix of character substitutions to a CSV file.
+
+    Parameters
+    ----------
+    freqs : Dict[str, Counter]
+        The dictionary of frequency counters.
+    output_path : str
+        The path for the output CSV file.
+    single_char_only : bool
+        If True, only include substitutions where both reference and
+        hypothesis are exactly one character long.
+    """
+    substitutions = freqs["substitute"]
+
+    vocab = set()
+    filtered_subs = {}
+    for (r, h), count in substitutions.items():
+        if single_char_only and (len(r) != 1 or len(h) != 1):
+            continue
+        vocab.add(r)
+        vocab.add(h)
+        filtered_subs[(r, h)] = count
+
+    if not vocab:
+        with open(output_path, mode="w", newline="", encoding="utf-8") as file:
+            writer = csv.writer(file)
+            writer.writerow(["Reference \\ Predicted"])
+        return
+
+    sorted_vocab = sorted(list(vocab))
+
+    with open(output_path, mode="w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        headers = ["Reference \\ Predicted"] + sorted_vocab
+        writer.writerow(headers)
+
+        for r in sorted_vocab:
+            row = [r]
+            for h in sorted_vocab:
+                row.append(filtered_subs.get((r, h), 0))
+            writer.writerow(row)
 
 
 def export_frequencies_to_latex(
@@ -485,12 +554,29 @@ def export_frequencies_to_latex(
     "--latex-output",
     default="character_error_frequencies.tex", show_default=True
 )
+@click.option(
+    "--cm-output",
+    default="character_confusion_matrix.csv", show_default=True
+)
+@click.option(
+    "--cm-single-output",
+    default="character_confusion_matrix_single.csv", show_default=True
+)
+@click.option(
+    "--normalize-h/--no-normalize-h",
+    default=True,
+    show_default=True,
+    help="Normalize h-digraphs (ah, eh, ih, oh, uh) to circumflex forms."
+)
 def main(
     input_tsv: str,
     word_output: str,
     char_output: str,
     freq_output: str,
-    latex_output: str
+    latex_output: str,
+    cm_output: str,
+    cm_single_output: str,
+    normalize_h: bool
 ) -> None:
     """Run the comprehensive error analysis script."""
     click.echo(f"Loading data from '{input_tsv}'...")
@@ -501,7 +587,9 @@ def main(
         sys.exit(1)
 
     click.echo(f"Processing {len(data)} records...")
-    w_tally, w_ex, c_tally, c_ex, c_freqs = analyze_all_errors(data)
+    w_tally, w_ex, c_tally, c_ex, c_freqs = analyze_all_errors(
+        data, normalize_h=normalize_h
+    )
 
     click.secho(
         "\n=== Repeated errors (Frequency > 1) ===", fg="yellow", bold=True
@@ -535,12 +623,17 @@ def main(
     export_examples_to_csv(w_ex, word_output, word_headers)
     export_frequencies_to_csv(c_freqs, freq_output)
     export_frequencies_to_latex(c_freqs, latex_output)
+    export_confusion_matrix_to_csv(c_freqs, cm_output, single_char_only=False)
+    export_confusion_matrix_to_csv(
+        c_freqs, cm_single_output, single_char_only=True)
 
     click.secho("The following files were written:", fg="green")
     click.echo(f"  - {char_output}")
     click.echo(f"  - {word_output}")
     click.echo(f"  - {freq_output}")
     click.echo(f"  - {latex_output}")
+    click.echo(f"  - {cm_output}")
+    click.echo(f"  - {cm_single_output}")
 
 
 if __name__ == "__main__":
