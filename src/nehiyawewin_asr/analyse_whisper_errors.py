@@ -6,7 +6,8 @@ Features:
 - Flags transcriptions with >10% Character Error Rate (CER).
 - Exports detailed word and character error examples.
 - Exports complete frequency tables to CSV and LaTeX.
-- Exports confusion matrices for character substitutions.
+- Exports confusion matrices for character substitutions to CSV and LaTeX.
+- Custom sorting for confusion matrices (vowels, circumflex, consonants, others).
 - Console output filters out single-occurrence anomalies.
 """
 
@@ -426,6 +427,30 @@ def export_frequencies_to_csv(
             writer.writerow(["Deletion", r_char, "", count])
 
 
+def get_phonetic_sort_key(char: str) -> Tuple[int, str]:
+    """
+    Generate a sort key to group characters into:
+    1. Vowels
+    2. Vowels with circumflex
+    3. Consonants
+    4. Everything else (with <space> sorted first in this group)
+    """
+    if char == "<space>":
+        # Empty string ensures it sorts before any other string in category 3
+        return (3, "")
+        
+    if len(char) == 1:
+        c = char.lower()
+        if c in {'a', 'e', 'i', 'o', 'u'}:
+            return (0, char)
+        elif c in {'â', 'ê', 'î', 'ô', 'û'}:
+            return (1, char)
+        elif c.isalpha() and c not in {'a', 'e', 'i', 'o', 'u', 'â', 'ê', 'î', 'ô', 'û'}:
+            return (2, char)
+            
+    return (3, char)
+
+
 def export_confusion_matrix_to_csv(
     freqs: Dict[str, Counter], output_path: str, single_char_only: bool = False
 ) -> None:
@@ -440,14 +465,14 @@ def export_confusion_matrix_to_csv(
         The path for the output CSV file.
     single_char_only : bool
         If True, only include substitutions where both reference and
-        hypothesis are exactly one character long.
+        hypothesis are exactly one character long or <space>.
     """
     substitutions = freqs["substitute"]
 
     vocab = set()
     filtered_subs = {}
     for (r, h), count in substitutions.items():
-        if single_char_only and (len(r) != 1 or len(h) != 1):
+        if single_char_only and not ((len(r) == 1 or r == "<space>") and (len(h) == 1 or h == "<space>")):
             continue
         vocab.add(r)
         vocab.add(h)
@@ -459,7 +484,7 @@ def export_confusion_matrix_to_csv(
             writer.writerow(["Reference \\ Predicted"])
         return
 
-    sorted_vocab = sorted(list(vocab))
+    sorted_vocab = sorted(list(vocab), key=get_phonetic_sort_key)
 
     with open(output_path, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
@@ -469,8 +494,76 @@ def export_confusion_matrix_to_csv(
         for r in sorted_vocab:
             row = [r]
             for h in sorted_vocab:
-                row.append(filtered_subs.get((r, h), 0))
+                val = filtered_subs.get((r, h), 0)
+                row.append(val if val > 0 else "")
             writer.writerow(row)
+
+
+def export_confusion_matrix_to_latex(
+    freqs: Dict[str, Counter], output_path: str, single_char_only: bool = False
+) -> None:
+    """
+    Export a confusion matrix of character substitutions to a LaTeX file.
+
+    Parameters
+    ----------
+    freqs : Dict[str, Counter]
+        The dictionary of frequency counters.
+    output_path : str
+        The path for the output LaTeX file.
+    single_char_only : bool
+        If True, only include substitutions where both reference and
+        hypothesis are exactly one character long or <space>.
+    """
+    substitutions = freqs["substitute"]
+
+    vocab = set()
+    filtered_subs = {}
+    for (r, h), count in substitutions.items():
+        if single_char_only and not ((len(r) == 1 or r == "<space>") and (len(h) == 1 or h == "<space>")):
+            continue
+        vocab.add(r)
+        vocab.add(h)
+        filtered_subs[(r, h)] = count
+
+    with open(output_path, mode="w", encoding="utf-8") as f:
+        if not vocab:
+            f.write("% No data for confusion matrix.\n")
+            return
+
+        sorted_vocab = sorted(list(vocab), key=get_phonetic_sort_key)
+        num_cols = len(sorted_vocab)
+        
+        f.write("\\documentclass{article}\n")
+        f.write("\\usepackage{booktabs}\n")
+        f.write("\\begin{document}\n\n")
+        
+        f.write("\\begin{table}[htbp]\n")
+        f.write("\\centering\n")
+        
+        col_format = "l" + "c" * num_cols
+        f.write(f"\\begin{{tabular}}{{{col_format}}}\n")
+        f.write("\\toprule\n")
+        
+        header_cells = ["Ref \\textbackslash{} Pred"] + [tex_escape(h) for h in sorted_vocab]
+        f.write(" & ".join(header_cells) + " \\\\\n")
+        f.write("\\midrule\n")
+        
+        for r in sorted_vocab:
+            row_cells = [tex_escape(r)]
+            for h in sorted_vocab:
+                val = filtered_subs.get((r, h), 0)
+                row_cells.append(str(val) if val > 0 else "")
+            f.write(" & ".join(row_cells) + " \\\\\n")
+        
+        f.write("\\bottomrule\n")
+        f.write("\\end{tabular}\n")
+        caption = "Character Confusion Matrix"
+        if single_char_only:
+            caption += " (Single Characters Only)"
+        f.write(f"\\caption{{{caption}}}\n")
+        f.write("\\end{table}\n\n")
+        f.write("\\end{document}\n")
 
 
 def export_frequencies_to_latex(
@@ -563,6 +656,14 @@ def export_frequencies_to_latex(
     default="character_confusion_matrix_single.csv", show_default=True
 )
 @click.option(
+    "--cm-latex-output",
+    default="character_confusion_matrix.tex", show_default=True
+)
+@click.option(
+    "--cm-single-latex-output",
+    default="character_confusion_matrix_single.tex", show_default=True
+)
+@click.option(
     "--normalize-h/--no-normalize-h",
     default=True,
     show_default=True,
@@ -576,6 +677,8 @@ def main(
     latex_output: str,
     cm_output: str,
     cm_single_output: str,
+    cm_latex_output: str,
+    cm_single_latex_output: str,
     normalize_h: bool
 ) -> None:
     """Run the comprehensive error analysis script."""
@@ -623,9 +726,11 @@ def main(
     export_examples_to_csv(w_ex, word_output, word_headers)
     export_frequencies_to_csv(c_freqs, freq_output)
     export_frequencies_to_latex(c_freqs, latex_output)
+    
     export_confusion_matrix_to_csv(c_freqs, cm_output, single_char_only=False)
-    export_confusion_matrix_to_csv(
-        c_freqs, cm_single_output, single_char_only=True)
+    export_confusion_matrix_to_csv(c_freqs, cm_single_output, single_char_only=True)
+    export_confusion_matrix_to_latex(c_freqs, cm_latex_output, single_char_only=False)
+    export_confusion_matrix_to_latex(c_freqs, cm_single_latex_output, single_char_only=True)
 
     click.secho("The following files were written:", fg="green")
     click.echo(f"  - {char_output}")
@@ -634,6 +739,8 @@ def main(
     click.echo(f"  - {latex_output}")
     click.echo(f"  - {cm_output}")
     click.echo(f"  - {cm_single_output}")
+    click.echo(f"  - {cm_latex_output}")
+    click.echo(f"  - {cm_single_latex_output}")
 
 
 if __name__ == "__main__":
